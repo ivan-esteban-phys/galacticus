@@ -177,7 +177,7 @@ contains
     class           (galacticFilterClass                    ), intent(in   ) , target      :: galacticFilter_
     class           (surveyGeometryClass                    ), intent(in   ) , target      :: surveyGeometry_
     class           (cosmologyFunctionsClass                ), intent(in   ) , target      :: cosmologyFunctions_                , cosmologyFunctionsData
-    class           (outputAnalysisPropertyOperatorClass    ), intent(in   ) , target      :: outputAnalysisPropertyOperator_
+    class           (outputAnalysisPropertyOperatorClass    ), intent(inout) , target      :: outputAnalysisPropertyOperator_
     class           (outputAnalysisDistributionOperatorClass), intent(in   ) , target      :: outputAnalysisDistributionOperator_
     class           (outputTimesClass                       ), intent(in   ) , target      :: outputTimes_
     double precision                                         , dimension(:  ), allocatable :: masses                             , functionValueTarget
@@ -222,7 +222,7 @@ contains
     class           (galacticFilterClass                            ), intent(in   ), target                   :: galacticFilter_
     class           (surveyGeometryClass                            ), intent(in   ), target                   :: surveyGeometry_
     class           (cosmologyFunctionsClass                        ), intent(in   ), target                   :: cosmologyFunctions_                                   , cosmologyFunctionsData
-    class           (outputAnalysisPropertyOperatorClass            ), intent(in   ), target                   :: outputAnalysisPropertyOperator_
+    class           (outputAnalysisPropertyOperatorClass            ), intent(inout), target                   :: outputAnalysisPropertyOperator_
     class           (outputAnalysisDistributionOperatorClass        ), intent(in   ), target                   :: outputAnalysisDistributionOperator_
     class           (outputTimesClass                               ), intent(in   ), target                   :: outputTimes_
     integer                                                          , intent(in   )                           :: covarianceBinomialBinsPerDecade
