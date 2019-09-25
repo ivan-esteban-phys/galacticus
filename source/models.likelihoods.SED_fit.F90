@@ -486,16 +486,19 @@ contains
     do iMagnitude=0,size(self%magnitude)
        ! Compute luminosity.
        if (useRapidEvaluation) then
-          if (iMagnitude > 0.0d0)                                                             &
-               & luminosity=+sum(weights*massToLightRatios(:,iMagnitude))                     &
-               &            *10.0d0**(                                                        &
-               &                      -0.4d0                                                  &
-               &                      *dust%attenuation(                                      &
-               &                                        self%wavelengthEffective(iMagnitude), &
-               &                                        stellarAgeArbitrary                 , &
-               &                                        vBandAttenuation                      &
-               &                                       )                                      &
-               &                     )
+          if (iMagnitude > 0.0d0) then
+             luminosity=+sum(weights*massToLightRatios(:,iMagnitude))                     &
+                  &     *10.0d0**(                                                        &
+                  &               -0.4d0                                                  &
+                  &               *dust%attenuation(                                      &
+                  &                                 self%wavelengthEffective(iMagnitude), &
+                  &                                 stellarAgeArbitrary                 , &
+                  &                                 vBandAttenuation                      &
+                  &                                )                                      &
+                  &              )
+          else
+             luminosity=0.0d0
+          end if
        else
           ! Integrate star formation history to get luminosity.
           integrationReset=.true.
