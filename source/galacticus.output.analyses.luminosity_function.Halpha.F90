@@ -144,7 +144,7 @@ contains
     class           (galacticFilterClass                    ), intent(in   ), target      :: galacticFilter_
     class           (surveyGeometryClass                    ), intent(in   ), target      :: surveyGeometry_
     class           (cosmologyFunctionsClass                ), intent(in   ), target      :: cosmologyFunctions_                , cosmologyFunctionsData
-    class           (outputAnalysisPropertyOperatorClass    ), intent(in   ), target      :: outputAnalysisPropertyOperator_
+    class           (outputAnalysisPropertyOperatorClass    ), intent(inout), target      :: outputAnalysisPropertyOperator_
     class           (outputAnalysisDistributionOperatorClass), intent(in   ), target      :: outputAnalysisDistributionOperator_
     double precision                                         , dimension(:) , allocatable :: luminosities
     integer                                                                               :: covarianceBinomialBinsPerDecade
@@ -181,7 +181,7 @@ contains
     class           (galacticFilterClass                            ), intent(in   ), target         :: galacticFilter_
     class           (surveyGeometryClass                            ), intent(in   ), target         :: surveyGeometry_
     class           (cosmologyFunctionsClass                        ), intent(in   ), target         :: cosmologyFunctions_                                   , cosmologyFunctionsData
-    class           (outputAnalysisPropertyOperatorClass            ), intent(in   ), target         :: outputAnalysisPropertyOperator_
+    class           (outputAnalysisPropertyOperatorClass            ), intent(inout), target         :: outputAnalysisPropertyOperator_
     class           (outputAnalysisDistributionOperatorClass        ), intent(in   ), target         :: outputAnalysisDistributionOperator_
     integer                                                          , intent(in   )                 :: covarianceBinomialBinsPerDecade
     double precision                                                 , intent(in   )                 :: covarianceBinomialMassHaloMinimum                     , covarianceBinomialMassHaloMaximum
