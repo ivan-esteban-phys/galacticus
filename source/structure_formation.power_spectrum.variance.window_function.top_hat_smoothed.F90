@@ -36,6 +36,7 @@
      !% A top-hat power spectrum window function class, smoothed with a Gaussian.
      private
      class(cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
+     double precision                         :: sigma
     contains
      final     ::                      topHatSmoothedDestructor
      procedure :: value             => topHatSmoothedValue
@@ -57,21 +58,30 @@ contains
     type (powerSpectrumWindowFunctionTopHatSmoothed)                :: self
     type (inputParameters                  ), intent(inout) :: parameters
     class(cosmologyParametersClass         ), pointer       :: cosmologyParameters_
+    double precision                                        :: sigma
 
+    !# <inputParameter>
+    !#   <name>sigma</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>3.0d0</defaultValue>
+    !#   <description>The parameter ``$\sigma$'' which defines the width of the smoothing Gaussian. Its default value corresponds roughly to the smallest scale probed by Ly-alpha data</description>
+    !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    self=powerSpectrumWindowFunctionTopHatSmoothed(cosmologyParameters_)
+    self=powerSpectrumWindowFunctionTopHatSmoothed(cosmologyParameters_, sigma)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"/>
     return
   end function topHatSmoothedConstructorParameters
 
-  function topHatSmoothedConstructorInternal(cosmologyParameters_) result(self)
+  function topHatSmoothedConstructorInternal(cosmologyParameters_, sigma) result(self)
     !% Internal constructor for the {\normalfont \ttfamily topHatSmoothed} power spectrum window function class.
     implicit none
     type (powerSpectrumWindowFunctionTopHatSmoothed)                        :: self
     class(cosmologyParametersClass         ), target, intent(in   ) :: cosmologyParameters_
+    double precision                                               , intent(in   )         :: sigma
     !# <constructorAssign variables="*cosmologyParameters_"/>
 
+    self%sigma = sigma
     return
   end function topHatSmoothedConstructorInternal
 
@@ -84,13 +94,13 @@ contains
     return
   end subroutine topHatSmoothedDestructor
 
-  double precision function topHatSmoothedValue(self,wavenumber,smoothingMass,sigma)
+  double precision function topHatSmoothedValue(self,wavenumber,smoothingMass)
     !% Top hat in real space window function Fourier transformed into $k$-space used in computing the variance of the power
     !% spectrum. Everything is convolved with a Gaussian of real-space width sigma
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (powerSpectrumWindowFunctionTopHatSmoothed), intent(inout) :: self
-    double precision                                   , intent(in   ) :: smoothingMass        , wavenumber, sigma
+    double precision                                   , intent(in   ) :: smoothingMass        , wavenumber
     double precision                                   , parameter     :: xSeriesMaximum=1.0d-3
     double precision                                                   :: topHatRadius         , x         , &
          &                                                                xSquared
@@ -122,18 +132,20 @@ contains
        topHatSmoothedValue=3.0d0*(sin(x)-x*cos(x))/(x**3)
     end if
 
-    topHatSmoothedValue = topHatSmoothedValue * exp(-wavenumber**2 * sigma**2 / 2.0d0)
+    topHatSmoothedValue = topHatSmoothedValue * exp(-wavenumber**2 * self%sigma**2 / 2.0d0)
     return
   end function topHatSmoothedValue
 
-  double precision function topHatSmoothedWavenumberMaximum(self,smoothingMass,sigma)
+  double precision function topHatSmoothedWavenumberMaximum(self,smoothingMass)
     !% Maximum wavenumber for a top hat in real space window function convoluted with a Gaussian Fourier transformed into $k$-space used in computing the
     !% variance of the power spectrum.
+    !% It is set to k=3.5/sigma, with sigma the real-space width of the smoothing Gaussian. Here, the Gaussian drops to ~ 2e-3.
+
     implicit none
     class           (powerSpectrumWindowFunctionTopHatSmoothed), intent(inout) :: self
     double precision                                   , intent(in   ) :: smoothingMass
     !$GLC attributes unused :: self, smoothingMass
 
-    topHatSmoothedWavenumberMaximum = 3.5d0/sigma
+    topHatSmoothedWavenumberMaximum = 3.5d0/self%sigma
     return
   end function topHatSmoothedWavenumberMaximum
