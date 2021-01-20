@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -41,6 +41,16 @@ module Cooling_Functions
   !#   <argument>type            (abundances         ), intent(in   ) :: gasAbundances</argument>
   !#   <argument>type            (chemicalAbundances ), intent(in   ) :: chemicalDensities</argument>
   !#   <argument>class           (radiationFieldClass), intent(inout) :: radiation</argument>
+  !#  </method>
+  !#  <method name="coolingFunctionFractionInBand" >
+  !#   <description>Return the fraction of the total cooling function due to emission in the the given energy range, specified by {\normalfont \ttfamily energyLow} and {\normalfont \ttfamily energyHigh} (in units of keV).</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision                     , intent(in   ) :: numberDensityHydrogen, temperature</argument>
+  !#   <argument>type            (abundances         ), intent(in   ) :: gasAbundances                     </argument>
+  !#   <argument>type            (chemicalAbundances ), intent(in   ) :: chemicalDensities                 </argument>
+  !#   <argument>class           (radiationFieldClass), intent(inout) :: radiation                         </argument>
+  !#   <argument>double precision                     , intent(in   ) :: energyLow            , energyHigh </argument>
   !#  </method>
   !#  <method name="coolingFunctionDensityLogSlope" >
   !#   <description>Return $\d\ln\Lambda/\d\ln\rho$ for a cooling function at the given temperature and hydrogen density for the specified set of abundances and radiation field.</description>

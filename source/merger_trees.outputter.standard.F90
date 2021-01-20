@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -538,9 +538,9 @@ contains
     include 'galacticus.output.merger_tree.property_count.modules.inc'
     !# </include>
     implicit none
-    class           (mergerTreeOutputterStandard), intent(inout)          :: self
-    double precision                             , intent(in   )          :: time
-    type            (treeNode                   ), intent(inout), pointer :: node
+    class           (mergerTreeOutputterStandard), intent(inout) :: self
+    double precision                             , intent(in   ) :: time
+    type            (treeNode                   ), intent(inout) :: node
 
     self%integerPropertyCount=0
     self%doublePropertyCount =0
@@ -623,10 +623,10 @@ contains
     include 'galacticus.output.merger_tree.names.modules.inc'
     !# </include>
     implicit none
-    class           (mergerTreeOutputterStandard), intent(inout)          :: self
-    double precision                             , intent(in   )          :: time
-    type            (treeNode                   ), intent(inout), pointer :: node
-    integer                                                               :: doubleProperty, integerProperty
+    class           (mergerTreeOutputterStandard), intent(inout) :: self
+    double precision                             , intent(in   ) :: time
+    type            (treeNode                   ), intent(inout) :: node
+    integer                                                      :: doubleProperty, integerProperty
 
     integerProperty=0
     doubleProperty =0

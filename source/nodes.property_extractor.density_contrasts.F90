@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,6 +23,7 @@
   use :: Cosmology_Parameters   , only : cosmologyParameters, cosmologyParametersClass
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
   use :: Galacticus_Nodes       , only : nodeComponentBasic , treeNode
+  use :: Root_Finder            , only : rootFinder
 
   !# <nodePropertyExtractor name="nodePropertyExtractorDensityContrasts">
   !#  <description>
@@ -42,10 +43,10 @@
      class           (cosmologyParametersClass), pointer                   :: cosmologyParameters_ => null()
      class           (cosmologyFunctionsClass ), pointer                   :: cosmologyFunctions_  => null()
      class           (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_ => null()
-     integer                                                               :: elementCount_                 , countDensityContrasts, &
-          &                                                                   massTypeSelected
+     type            (rootFinder              )                            :: finder
+     integer                                                               :: elementCount_                 , countDensityContrasts    , &
+          &                                                                   massTypeSelected              , densityContrastRelativeTo
      logical                                                               :: darkMatterOnly
-     double precision                                                      :: densityReference
      double precision                          , allocatable, dimension(:) :: densityContrasts
    contains
      final     ::                 densityContrastsDestructor
@@ -67,14 +68,15 @@
   type            (treeNode                             ), pointer :: densityContrastsNode
   class           (nodeComponentBasic                   ), pointer :: densityContrastsBasic
   class           (nodePropertyExtractorDensityContrasts), pointer :: densityContrastsSelf
-  double precision                                                 :: densityContrastsMeanTarget
-  !$omp threadprivate(densityContrastsNode,densityContrastsBasic,densityContrastsMeanTarget)
+  double precision                                                 :: densityTarget
+  !$omp threadprivate(densityContrastsNode,densityContrastsBasic,densityContrastsSelf,densityTarget)
 
 contains
 
   function densityContrastsConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily densityContrasts} property extractor class which takes a parameter set as input.
-    use :: Input_Parameters, only : inputParameter, inputParameters
+    use :: Cosmology_Functions, only : enumerationDensityCosmologicalEncode
+    use :: Input_Parameters   , only : inputParameter                      , inputParameters
     implicit none
     type            (nodePropertyExtractorDensityContrasts)                              :: self
     type            (inputParameters                      ), intent(inout)               :: parameters
@@ -83,12 +85,19 @@ contains
     class           (darkMatterHaloScaleClass             ), pointer                     :: darkMatterHaloScale_
     double precision                                       , allocatable  , dimension(:) :: densityContrasts
     logical                                                                              :: darkMatterOnly
-
+    type            (varying_string                       )                              :: densityContrastRelativeTo
+    
     allocate(densityContrasts(parameters%count('densityContrasts')))
     !# <inputParameter>
     !#   <name>densityContrasts</name>
     !#   <description>A list of density contrasts at which to output data.</description>
     !#   <source>parameters</source>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>densityContrastRelativeTo</name>
+    !#   <description>The density ({\normalfont \ttfamily mean} or {\normalfont \ttfamily critical}) used in defining the density contrast.</description>
+    !#   <source>parameters</source>
+    !#   <defaultValue>var_str('mean')</defaultValue>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>darkMatterOnly</name>
@@ -99,7 +108,7 @@ contains
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
-    self=nodePropertyExtractorDensityContrasts(densityContrasts,darkMatterOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_)
+    self=nodePropertyExtractorDensityContrasts(densityContrasts,darkMatterOnly,enumerationDensityCosmologicalEncode(char(densityContrastRelativeTo),includesPrefix=.false.),cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"/>
     !# <objectDestructor name="cosmologyFunctions_" />
@@ -107,9 +116,10 @@ contains
     return
   end function densityContrastsConstructorParameters
 
-  function densityContrastsConstructorInternal(densityContrasts,darkMatterOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_) result(self)
+  function densityContrastsConstructorInternal(densityContrasts,darkMatterOnly,densityContrastRelativeTo,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily densityContrasts} property extractor class.
-    use :: Galactic_Structure_Options, only : massTypeAll, massTypeDark
+    use :: Galactic_Structure_Options, only : massTypeAll              , massTypeDark
+    use :: Root_Finder               , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     implicit none
     type            (nodePropertyExtractorDensityContrasts)                              :: self
     class           (cosmologyFunctionsClass              ), intent(in   ), target       :: cosmologyFunctions_
@@ -117,18 +127,28 @@ contains
     class           (darkMatterHaloScaleClass             ), intent(in   ), target       :: darkMatterHaloScale_
     double precision                                       , intent(in   ), dimension(:) :: densityContrasts
     logical                                                , intent(in   )               :: darkMatterOnly
-    !# <constructorAssign variables="densityContrasts, darkMatterOnly, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_"/>
+    integer                                                , intent(in   )               :: densityContrastRelativeTo
+    double precision                                       , parameter                   :: toleranceAbsolute        =0.0d0, toleranceRelative=1.0d-3
+    !# <constructorAssign variables="densityContrasts, darkMatterOnly, densityContrastRelativeTo, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_"/>
 
     self%countDensityContrasts=  size(densityContrasts)
     self%elementCount_        =2*size(densityContrasts)
-     select case (darkMatterOnly)
+    select case (darkMatterOnly)
     case (.true.)
        self%massTypeSelected=massTypeDark
-       self%densityReference=(self%cosmologyParameters_%OmegaMatter()-self%cosmologyParameters_%OmegaBaryon())*self%cosmologyParameters_%densityCritical()
     case (.false.)
        self%massTypeSelected=massTypeAll
-       self%densityReference= self%cosmologyParameters_%OmegaMatter()                                         *self%cosmologyParameters_%densityCritical()
     end select
+    self%finder=rootFinder(                                                             &
+         &                 rootFunction                 =densityContrastsRoot         , &
+         &                 rangeExpandDownward          =0.5d0                        , &
+         &                 rangeExpandUpward            =2.0d0                        , &
+         &                 rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
+         &                 rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
+         &                 rangeExpandType              =rangeExpandMultiplicative    , &
+         &                 toleranceAbsolute            =toleranceAbsolute            , &
+         &                 toleranceRelative            =toleranceRelative              &
+         &                )
     return
   end function densityContrastsConstructorInternal
 
@@ -156,48 +176,51 @@ contains
 
   function densityContrastsExtract(self,node,time,instance)
     !% Implement a last isolated redshift output analysis.
+    use :: Cosmology_Functions               , only : densityCosmologicalMean         , densityCosmologicalCritical
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
     use :: Galactic_Structure_Options        , only : componentTypeAll
-    use :: Root_Finder                       , only : rangeExpandMultiplicative       , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     double precision                                        , dimension(:) , allocatable :: densityContrastsExtract
     class           (nodePropertyExtractorDensityContrasts ), intent(inout), target      :: self
     type            (treeNode                              ), intent(inout), target      :: node
     double precision                                        , intent(in   )              :: time
     type            (multiCounter                          ), intent(inout), optional    :: instance
-    double precision                                        , parameter                  :: toleranceAbsolute      =0.0d0, toleranceRelative=1.0d-3
-    type            (rootFinder                            ), save                       :: finder
-    !$omp threadprivate(finder)
     integer                                                                              :: i
-    double precision                                                                     :: enclosedMass                 , radius
+    double precision                                                                     :: enclosedMass           , radius, &
+         &                                                                                  densityReference
     !$GLC attributes unused :: time, instance
 
     allocate(densityContrastsExtract(self%elementCount_))
-    ! Initialize our root finder.
-    if (.not.finder%isInitialized()) then
-       call finder%rangeExpand (                                                             &
-            &                   rangeExpandDownward          =0.5d0                        , &
-            &                   rangeExpandUpward            =2.0d0                        , &
-            &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
-            &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
-            &                   rangeExpandType              =rangeExpandMultiplicative      &
-            &                  )
-       call finder%rootFunction(densityContrastsRoot         )
-       call finder%tolerance   (toleranceAbsolute,toleranceRelative)
-    end if
     ! Make the self, node, and basic component available to the root finding routine.
     densityContrastsSelf  => self
     densityContrastsNode  => node
     densityContrastsBasic => node%basic()
+    ! Find the reference density at this epoch.
+    densityReference=self%cosmologyFunctions_%matterDensityEpochal(densityContrastsBasic%time())
+    select case (self%densityContrastRelativeTo)
+    case (densityCosmologicalMean    )
+       ! No modification required.
+    case (densityCosmologicalCritical)
+       ! Modify reference density to be the critical density.
+       densityReference=+densityReference                                                          &
+            &           /self%cosmologyFunctions_%OmegaMatterEpochal(densityContrastsBasic%time())
+    case default
+       call Galacticus_Error_Report('unknown cosmological density'//{introspection:location})
+    end select
+    ! If dark matter only is used, multiply the reference density by the dark matter fraction.
+    if (self%darkMatterOnly) densityReference=+ densityReference                                                                 &
+         &                                    *(self%cosmologyParameters_%OmegaMatter()-self%cosmologyParameters_%OmegaBaryon()) &
+         &                                    / self%cosmologyParameters_%OmegaMatter()
+    ! Iterate over density contrasts.    
     do i=1,self%countDensityContrasts
-       densityContrastsMeanTarget=self  %densityContrasts(          i                                           )
-       radius                    =finder%find            (rootGuess=self%darkMatterHaloScale_%virialRadius(node))
-       enclosedMass              =Galactic_Structure_Enclosed_Mass(                                     &
-            &                                                                         node            , &
-            &                                                                         radius          , &
-            &                                                      componentType=     componentTypeAll, &
-            &                                                      massType     =self%massTypeSelected  &
-            &                                                     )
+       densityTarget=self       %densityContrasts(          i                                           )*densityReference
+       radius       =self%finder%find            (rootGuess=self%darkMatterHaloScale_%virialRadius(node))
+       enclosedMass =Galactic_Structure_Enclosed_Mass(                                     &
+            &                                                            node            , &
+            &                                                            radius          , &
+            &                                         componentType=     componentTypeAll, &
+            &                                         massType     =self%massTypeSelected  &
+            &                                        )
        densityContrastsExtract((i-1)*2+1:(i-1)*2+2)=[radius,enclosedMass]
     end do
     return
@@ -287,15 +310,11 @@ contains
          &                                                componentType=                     componentTypeAll    , &
          &                                                massType     =densityContrastsSelf%massTypeSelected      &
          &                                               )
-    densityContrastsRoot=+3.0d0                                                                                       &
-         &               *enclosedMass                                                                                &
-         &               /4.0d0                                                                                       &
-         &               /Pi                                                                                          &
-         &               /radius**3                                                                                   &
-         &               /(                                                                                           &
-         &                 +densityContrastsSelf%densityReference                                                     &
-         &                 /densityContrastsSelf%cosmologyFunctions_%expansionFactor(densityContrastsBasic%time())**3 &
-         &               )                                                                                            &
-         &               -densityContrastsMeanTarget
+    densityContrastsRoot=+3.0d0         &
+         &               *enclosedMass  &
+         &               /4.0d0         &
+         &               /Pi            &
+         &               /radius**3     &
+         &               -densityTarget
     return
   end function densityContrastsRoot

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -142,10 +142,10 @@ contains
     use :: Galacticus_Nodes            , only : nodeComponentBasic             , treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    type            (treeNode                 ), intent(inout), pointer :: node
-    double precision                           , intent(in   )          :: angularMomentum
-    class           (darkMatterProfileDMOClass), intent(inout)          :: darkMatterProfileDMO_
-    class           (nodeComponentBasic       )               , pointer :: basic
+    type            (treeNode                 ), intent(inout) :: node
+    double precision                           , intent(in   ) :: angularMomentum
+    class           (darkMatterProfileDMOClass), intent(inout) :: darkMatterProfileDMO_
+    class           (nodeComponentBasic       ), pointer       :: basic
 
     call assertPropertiesGettable()
     basic                 =>  node             %basic()

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -110,24 +110,24 @@ contains
     !% Compute rates of change of properties in the standard implementation of the basic component.
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasicStandard, propertyTypeInactive, treeNode
     implicit none
-    type     (treeNode          ), intent(inout), pointer :: node
+    type     (treeNode          ), intent(inout)          :: node
     logical                      , intent(inout)          :: interrupt
     procedure(                  ), intent(inout), pointer :: interruptProcedure
     integer                      , intent(in   )          :: propertyType
-    class    (nodeComponentBasic)               , pointer :: basicComponent
+    class    (nodeComponentBasic)               , pointer :: basic
     !$GLC attributes unused :: interrupt, interruptProcedure
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
     ! Get the basic component.
-    basicComponent => node%basic()
+    basic => node%basic()
     ! Ensure that it is of the standard class.
-    select type (basicComponent)
+    select type (basic)
     class is (nodeComponentBasicStandard)
        ! Mass rate of change is set to the accretion rate.
-       call basicComponent%massRate(basicComponent%accretionRate())
+       call basic%massRate(basic%accretionRate())
        ! Time rate of change is unity, by definition.
-       call basicComponent%timeRate(1.0d0                         )
+       call basic%timeRate(1.0d0                         )
     end select
     return
   end subroutine Node_Component_Basic_Standard_Rate_Compute
@@ -142,17 +142,17 @@ contains
     type            (treeNode          ), intent(inout), pointer :: node
     double precision                    , parameter              :: timeScale        =1.0d-3
     double precision                    , parameter              :: scaleMassRelative=1.0d-6
-    class           (nodeComponentBasic)               , pointer :: basicComponent
+    class           (nodeComponentBasic)               , pointer :: basic
 
     ! Get the basic component.
-    basicComponent => node%basic()
+    basic => node%basic()
     ! Ensure that it is of the standard class.
-    select type (basicComponent)
+    select type (basic)
     class is (nodeComponentBasicStandard)
        ! Set scale for time.
-       call basicComponent%timeScale(timeScale                              )
+       call basic%timeScale(timeScale                              )
        ! Set scale for mass.
-       call basicComponent%massScale(basicComponent%mass()*scaleMassRelative)
+       call basic%massScale(basic%mass()*scaleMassRelative)
     end select
     return
   end subroutine Node_Component_Basic_Standard_Scale_Set
@@ -256,8 +256,8 @@ contains
     !% Switch off accretion of new mass onto this node once it becomes a satellite.
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasicStandard, treeNode
     implicit none
-    type (treeNode          ), intent(inout), pointer :: node
-    class(nodeComponentBasic)               , pointer :: basic
+    type (treeNode          ), intent(inout) :: node
+    class(nodeComponentBasic), pointer       :: basic
 
     ! Get the basic component.
     basic => node%basic()

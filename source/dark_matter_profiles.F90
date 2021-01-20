@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -78,8 +78,8 @@ module Dark_Matter_Profiles
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <selfTarget>yes</selfTarget>
-  !#   <argument>type            (treeNode), intent(inout), pointer :: node</argument>
-  !#   <argument>double precision          , intent(in   )          :: specificAngularMomentum</argument>
+  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
+  !#   <argument>double precision          , intent(in   ) :: specificAngularMomentum</argument>
   !#  </method>
   !#  <method name="circularVelocity" >
   !#   <description>Returns the circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc).</description>
@@ -157,24 +157,27 @@ module Dark_Matter_Profiles
   !#   <code>
   !#    double precision                      :: radiusGuess
   !#    type            (rootFinder), save    :: finder
-  !#    double precision            , save    :: radiusPrevious=-huge(0.0d0)
-  !#    integer         (kind_int8 ), save    :: uniqueIDPrevious=-1_kind_int8
-  !#    !$omp threadprivate(finder,radiusPrevious,uniqueIDPrevious)
+  !#    logical                     , save    :: finderConstructed=.false.
+  !#    double precision            , save    :: radiusPrevious   =-huge(0.0d0)
+  !#    integer         (kind_int8 ), save    :: uniqueIDPrevious =-1_kind_int8
+  !#    !$omp threadprivate(finder,finderConstructed,radiusPrevious,uniqueIDPrevious)
   !#    if(mass &lt;= 0) then
   !#       darkMatterProfileRadiusEnclosingMass=0.0d0
   !#       return
   !#    end if
   !#    ! Initialize the root finder.
-  !#    if (.not.finder%isInitialized()) then
-  !#       call finder%rangeExpand (                                                                 &amp;
-  !#            &amp;                   rangeExpandDownward          =0.5d0                        , &amp;
-  !#            &amp;                   rangeExpandUpward            =2.0d0                        , &amp;
-  !#            &amp;                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &amp;
-  !#            &amp;                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &amp;
-  !#            &amp;                   rangeExpandType              =rangeExpandMultiplicative      &amp;
-  !#            &amp;              )
-  !#       call finder%rootFunction(enclosedMassRoot                                )
-  !#       call finder%tolerance   (toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6)
+  !#    if (.not.finderConstructed) then
+  !#       finder=rootFinder(                                                             &amp;
+  !#            &amp;        rootFunction                 =enclosedMassRoot             , &amp;
+  !#            &amp;        rangeExpandDownward          =0.5d0                        , &amp;
+  !#            &amp;        rangeExpandUpward            =2.0d0                        , &amp;
+  !#            &amp;        rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &amp;
+  !#            &amp;        rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &amp;
+  !#            &amp;        rangeExpandType              =rangeExpandMultiplicative    , &amp;
+  !#            &amp;        toleranceAbsolute            =0.0d+0                       , &amp;
+  !#            &amp;        toleranceRelative            =1.0d-6                         &amp;
+  !#            &amp;       )
+  !#       finderConstructed=.true.
   !#    end if
   !#    if (node%uniqueID()     == uniqueIDPrevious) then
   !#       radiusGuess     =radiusPrevious
@@ -189,7 +192,7 @@ module Dark_Matter_Profiles
   !#      double precision function enclosedMassRoot(radius)
   !#        !% Root function used in solving for the radius that encloses a given mass.
   !#        implicit none
-  !#        double precision,               intent(in) :: radius
+  !#        double precision, intent(in) :: radius
   !#        enclosedMassRoot=self%enclosedMass(node,radius)-mass
   !#        return
   !#      end function enclosedMassRoot

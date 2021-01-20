@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -102,11 +102,11 @@ contains
     !% where $\nu=\delta_\mathrm{c}(t)/\sigma(M)$ is the peak height of the halo.
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
-    class           (darkMatterProfileShapeGao2008), intent(inout)          :: self
-    type            (treeNode                     ), intent(inout), pointer :: node
-    double precision                               , parameter              :: nuMaximum=3.907d0
-    class           (nodeComponentBasic           )               , pointer :: basic
-    double precision                                                        :: nu
+    class           (darkMatterProfileShapeGao2008), intent(inout)  :: self
+    type            (treeNode                     ), intent(inout), :: node
+    double precision                               , parameter      :: nuMaximum=3.907d0
+    class           (nodeComponentBasic           ), pointer        :: basic
+    double precision                                                :: nu
 
     ! Get the basic component.
     basic => node%basic()

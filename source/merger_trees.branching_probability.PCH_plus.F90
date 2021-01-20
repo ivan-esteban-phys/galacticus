@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -131,7 +131,7 @@ contains
     ! Validate.
     if (cdmAssumptions .and. gamma3 > 1.5d0) call Galacticus_Error_Report('γ₃>³/₂ violates CDM assumptions'//{introspection:location})
     ! Initialize.
-self%mergerTreeBranchingProbabilityParkinsonColeHelly=mergerTreeBranchingProbabilityParkinsonColeHelly(G0,gamma1,gamma2,accuracyFirstOrder,precisionHypergeometric,hypergeometricTabulate,cdmAssumptions,cosmologicalMassVariance_,criticalOverdensity_)
+    self%mergerTreeBranchingProbabilityParkinsonColeHelly=mergerTreeBranchingProbabilityParkinsonColeHelly(G0,gamma1,gamma2,accuracyFirstOrder,precisionHypergeometric,hypergeometricTabulate,cdmAssumptions,cosmologicalMassVariance_,criticalOverdensity_)
     return
   end function pchPlusConstructorInternal
 

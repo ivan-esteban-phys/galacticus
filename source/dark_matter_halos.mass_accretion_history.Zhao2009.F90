@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -110,7 +110,7 @@ contains
 
   double precision function zhao2009Time(self,node,mass)
     !% Compute the time corresponding to {\normalfont \ttfamily mass} in the mass accretion history of {\normalfont \ttfamily
-    !% thisNode} using the algorithm of \cite{zhao_accurate_2009}.
+    !% node} using the algorithm of \cite{zhao_accurate_2009}.
     use :: Galacticus_Error     , only : Galacticus_Error_Report
     use :: Galacticus_Nodes     , only : nodeComponentBasic     , treeNode
     use :: Interface_GSL        , only : GSL_Success

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -128,7 +128,7 @@ contains
   end subroutine exportDestructor
 
   subroutine exportOperatePreEvolution(self,tree)
-    !% Output the structure of {\normalfont \ttfamily thisTree}.
+    !% Output the structure of {\normalfont \ttfamily tree}.
     use :: Cosmology_Parameters            , only : hubbleUnitsLittleH
     use :: Dates_and_Times                 , only : Formatted_Date_and_Time
     use :: Galacticus_Nodes                , only : defaultPositionComponent     , mergerTree            , nodeComponentBasic    , nodeComponentPosition      , &

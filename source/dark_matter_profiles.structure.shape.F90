@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -35,7 +35,7 @@ module Dark_Matter_Profiles_Shape
   !#   <description>Returns the shape parameter for the given {\normalfont \ttfamily node}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
+  !#   <argument>type(treeNode), intent(inout) :: node</argument>
   !#  </method>
   !# </functionClass>
 

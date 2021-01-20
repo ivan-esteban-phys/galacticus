@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -1553,8 +1553,8 @@ contains
                 if (nodeIsMostMassive) then
                    ! Node is isolated, has no isolated node that descends into it, and our subhalo is the most massive subhalo which
                    ! descends into it. Therefore, our subhalo must be promoted to become an isolated halo again.
-                   node       => nodeList(nodes(inode)  %isolatedNodeIndex)%node
-                   promotionNode  => nodeList(descendentNode%isolatedNodeIndex)%node
+                   node          => nodeList(nodes(iNode)  %isolatedNodeIndex)%node
+                   promotionNode => nodeList(descendentNode%isolatedNodeIndex)%node
                    allocate(nodeEventSubhaloPromotion ::  newEvent)
                    allocate(nodeEventSubhaloPromotion :: pairEvent)
                    call node     %attachEvent( newEvent)
@@ -1888,26 +1888,31 @@ contains
     class           (mergerTreeConstructorRead        ), target                       , intent(inout) :: self
     class           (nodeData                         )                 , dimension(:), intent(inout) :: nodes
     type            (treeNodeList                     )                 , dimension(:), intent(inout) :: nodeList
-    double precision                                   , parameter                                    :: scaleRadiusMaximumAllowed    =100.0d0, toleranceAbsolute  =1.0d-9, &
-         &                                                                                               toleranceRelative            =1.0d-9
-    logical                                                       , save                              :: excessiveScaleRadiiReported  =.false.
+    double precision                                   , parameter                                    :: scaleRadiusMaximumAllowed  =100.0d0, toleranceAbsolute  =1.0d-9, &
+         &                                                                                               toleranceRelative          =1.0d-9
+    logical                                                       , save                              :: excessiveScaleRadiiReported=.false.
     class           (nodeComponentBasic               ), pointer                                      :: basic
     class           (nodeComponentDarkMatterProfile   ), pointer                                      :: darkMatterProfile
-    integer                                                                                           :: iNode                                , status                     , &
+    integer                                                                                           :: iNode                              , status                    , &
          &                                                                                               messageVerbosity
     integer         (c_size_t                         )                                               :: iIsolatedNode
     double precision                                                                                  :: radiusScale
-    logical                                                                                           :: excessiveHalfMassRadii               , excessiveScaleRadii        , &
+    logical                                                                                           :: excessiveHalfMassRadii             , excessiveScaleRadii       , &
          &                                                                                               useFallbackScaleMethod
     type            (rootFinder                       )           , save                              :: finder
+    logical                                                       , save                              :: finderConstructed          =.false.
     !$omp threadprivate(finder)
     type            (varying_string                   )                                               :: message
     character       (len=16                           )                                               :: label
 
     ! Initialize our root finder.
-    if (.not.finder%isInitialized()) then
-       call finder%rootFunction(readRadiusHalfMassRoot              )
-       call finder%tolerance   (toleranceAbsolute,toleranceRelative)
+    if (.not.finderConstructed) then
+       finder           =rootFinder(                                          &
+            &                       rootFunction     =readRadiusHalfMassRoot, &
+            &                       toleranceAbsolute=toleranceAbsolute     , &
+            &                       toleranceRelative=toleranceRelative       &
+            &                      )
+       finderConstructed=.true.
     end if
     readSelf => self
     ! Find the scale radius.
@@ -2167,8 +2172,8 @@ contains
              ! Select the subset which have a subhalo as a descendent.
              if (nodes(iNode)%descendent%isSubhalo) then
                 ! Trace descendents until merging or final time.
-                node   => nodes(iNode)%descendent
-                endOfBranch=  .false.
+                node        => nodes(iNode)%descendent
+                endOfBranch =  .false.
                 do while (.not.endOfBranch)
                    ! Record that this node was reachable via descendents of an isolated node.
                    if (node%isolatedNodeIndex == readNodeReachabilityUnreachable) node%isolatedNodeIndex=readNodeReachabilityReachable
@@ -2242,7 +2247,7 @@ contains
              if (associated(nodes(iNode)%descendent)) then
                 ! Flag indicating if this is a node for which a merging time should be set.
                 nodeWillMerge=.false.
-                ! Select the subset which have a subhalo, or which are an initial subhalo.
+                ! Select the subset which have a subhalo descendent, or which are an initial subhalo.
                 if (nodes(iNode)%descendent%isSubhalo.or.nodes(iNode)%isSubhalo) then
                    ! Trace descendents until merging or final time.
                    endOfBranch     =.false.
@@ -2260,7 +2265,7 @@ contains
                          historyCount=historyCount+max(0_kind_int8,self%mergerTreeImporter_%subhaloTraceCount(nodes(iNode)))
                       end if
                       lastSeenNode => nodes(iNode)
-                      node     => nodes(iNode)%descendent
+                      node         => nodes(iNode)%descendent
                    end if
                    do while (.not.endOfBranch)
                       ! Record which isolated node this node belongs to.
@@ -2303,20 +2308,20 @@ contains
                          call progenitors%descendentSet(self,node%descendent,nodes)
                          do while (progenitors%next(nodes))
                             progenitorNode => progenitors%current(nodes)
-                            if     (                                                                          &
-                                 &                    progenitorNode%nodeIndex         /= node%nodeIndex      &
-                                 &  .and.             progenitorNode%isolatedNodeIndex /= readNodeReachabilityUnreachable   &
-                                 &  .and.  associated(progenitorNode%descendent                             ) &
-                                 &  .and.             progenitorNode%nodeMass           > node%nodeMass       &
+                            if     (                                                                                        &
+                                 &                     progenitorNode%nodeIndex         /= node%nodeIndex                   &
+                                 &  .and.              progenitorNode%isolatedNodeIndex /= readNodeReachabilityUnreachable  &
+                                 &  .and.   associated(progenitorNode%descendent                                          ) &
+                                 &  .and.massIsGreater(progenitorNode                   ,  node                           ) &
                                  & ) then
                                ! Another node merges into current node's descendent subhalo and is more massive than current
                                ! node. Therefore, class this as a subhalo-subhalo merger.
-                               branchMerges                =.true.
-                               endOfBranch                 =.true.
-                               nodes(iNode)%mergesWithIndex=progenitorNode%descendent%nodeIndex
-                               historyCount                =historyCount+max(0_kind_int8,self%mergerTreeImporter_%subhaloTraceCount(node))
+                               branchMerges                =  .true.
+                               endOfBranch                 =  .true.
+                               nodes(iNode)%mergesWithIndex=  progenitorNode%descendent%nodeIndex
+                               historyCount                =  historyCount+max(0_kind_int8,self%mergerTreeImporter_%subhaloTraceCount(node))
                                lastSeenNode                => node
-                               node                    => node%descendent
+                               node                        => node%descendent
                                exit
                             end if
                          end do
@@ -2373,6 +2378,10 @@ contains
                       firstProgenitor => firstProgenitor%firstChild
                    end do
                 end if
+             else
+                ! Node has no descendent - it must therefore be an initial subhalo seen only once. A position history must be set
+                ! for this, so ensure the history arrays are sufficiently sized.
+                historyCountMaximum=max(historyCountMaximum,max(0_kind_int8,self%mergerTreeImporter_%subhaloTraceCount(nodes(iNode))))
              end if
              ! Handle cases where a node jumps to another tree.
              if (pass_ == passMerge .and. self%isOnPushList(nodes(iNode)) .and. self%presetMergerTimes) then
@@ -2495,6 +2504,23 @@ contains
     return
   end subroutine readScanForMergers
 
+  logical function massIsGreater(node1,node2)
+    !% Return true if the mass of {\normalfont \ttfamily node1} is greater than that of {\normalfont \ttfamily node2}. In cases of
+    !% precisely equal masses the tie is broken by considering the node indices (which should never be equal). Thsi ensures that
+    !% there is always a well-defined primary progenitor halo for example.
+    implicit none
+    class(nodeData), intent(in   ) :: node1, node2
+    
+    massIsGreater=   node1%nodeMass  >  node2%nodeMass  &
+         &        .or.                                  &
+         &         (                                    &
+         &           node1%nodeMass  == node2%nodeMass  &
+         &          .and.                               &
+         &           node1%nodeIndex >  node2%nodeIndex &
+         &         )
+    return
+  end function massIsGreater
+  
   subroutine readAssignMergers(self,nodes,nodeList)
     !% Assign pointers to merge targets.
     use :: Galacticus_Error          , only : Galacticus_Error_Report
@@ -2742,7 +2768,7 @@ contains
     use :: Galacticus_Nodes , only : nodeEvent       , nodeEventBranchJump, treeNode
     use :: Node_Branch_Jumps, only : Node_Branch_Jump
     implicit none
-    type            (treeNode ), intent(inout), pointer :: jumpToHost, node
+    type            (treeNode ), intent(inout), target  :: jumpToHost, node
     double precision           , intent(in   )          :: timeOfJump
     class           (nodeEvent)               , pointer :: newEvent  , pairEvent
 
@@ -2797,12 +2823,12 @@ contains
        historyBuildNodeLoop: do iNode=1,size(nodes)
           historyBuildIsolatedSelect: if (nodes(iNode)%primaryIsolatedNodeIndex /= readNodeReachabilityUnreachable) then
              iIsolatedNode=nodes(iNode)%primaryIsolatedNodeIndex
+             ! Set a pointer to the current node - this will be updated if any descendents are traced.
+             node => nodes(iNode)
+             ! Set initial number of times in the history to zero.
+             historyCount=0
              ! Find the subset with descendents.
              historyBuildHasDescendentSelect: if (associated(nodes(iNode)%descendent)) then
-                ! Set a pointer to the current node - this will be updated if any descendents are traced.
-                node => nodes(iNode)
-                ! Set initial number of times in the history to zero.
-                historyCount=0
                 ! Select the subset which have a subhalo as a descendent and are not the primary progenitor or are initial subhalos. Also skip immediate subhalo-subhalo mergers.
                 historyBuildSubhaloSelect: if ((nodes(iNode)%descendent%isSubhalo.or.nodes(iNode)%isSubhalo).and..not.self%isSubhaloSubhaloMerger(nodes,nodes(iNode))) then
                    ! Trace descendents until merging or final time.
@@ -2829,20 +2855,20 @@ contains
                       if (self%presetPositions     ) velocity    (:,historyCount)=node%velocity
                       ! Test the branch.
                       if (.not.associated(node%descendent).or..not.node%descendent%isSubhalo) then
-                         ! End of branch reached.
+                         ! End of branch reached.                         
                          endOfBranch=.true.
                       else
                          ! Check if merges with another subhalo.
                          call progenitors%descendentSet(self,node%descendent,nodes)
                          do while (progenitors%next(nodes))
                             progenitorNode => progenitors%current(nodes)
-                            if     (                                                                          &
-                                 &                    progenitorNode%nodeIndex         /= node%nodeIndex      &
-                                 &  .and.             progenitorNode%isolatedNodeIndex /= readNodeReachabilityUnreachable   &
-                                 &  .and.  associated(progenitorNode%descendent                             ) &
-                                 &  .and.             progenitorNode%nodeMass           > node%nodeMass       &
+                            if     (                                                                                         &
+                                 &                      progenitorNode%nodeIndex         /= node%nodeIndex                   &
+                                 &  .and.               progenitorNode%isolatedNodeIndex /= readNodeReachabilityUnreachable  &
+                                 &  .and.    associated(progenitorNode%descendent                                          ) &
+                                 &  .and. massIsGreater(progenitorNode                   ,  node                           ) &
                                  & ) then
-                               ! Subhalo-subhalo merger.
+                               ! Subhalo-subhalo merger.                               
                                endOfBranch =.true.
                                exit
                             end if
@@ -2870,40 +2896,39 @@ contains
                       call satellite%nodeIndexHistorySet(subhaloIndexHistory)
                    end if
                 end if historyBuildSubhaloSelect
-                ! Set the position history for this node.
-                if (self%presetPositions.and..not.nodeList(iIsolatedNode)%node%isPrimaryProgenitor()) then
-                   ! Check if particle data is available for this node.
-                   if (self%mergerTreeImporter_%subhaloTraceCount(node) > 0) then
-                      ! Check that arrays are large enough to hold particle data. They should be. If they are not, it's a
-                      ! bug.
-                      if (historyCount+self%mergerTreeImporter_%subhaloTraceCount(node) > size(historyTime)) then
-                         message='history arrays are too small to hold data for node '
-                         message=message//nodeList(iIsolatedNode)%node%index()//': ['//historyCount//'+'//self%mergerTreeImporter_%subhaloTraceCount(node)//']='//(historyCount+self%mergerTreeImporter_%subhaloTraceCount(node))//'>'//size(historyTime)
-                         call Galacticus_Error_Report(message//{introspection:location})
-                      end if
-                      ! Read subhalo position trace data.
-                      call self%mergerTreeImporter_%subhaloTrace                                                           &
-                           & (                                                                                    &
-                           &  node                                                                              , &
-                           &  historyTime(  historyCount+1:historyCount+self%mergerTreeImporter_%subhaloTraceCount(node)), &
-                           &  position   (:,historyCount+1:historyCount+self%mergerTreeImporter_%subhaloTraceCount(node)), &
-                           &  velocity   (:,historyCount+1:historyCount+self%mergerTreeImporter_%subhaloTraceCount(node))  &
-                           & )
-                      ! Increment the history count for this node.
-                      historyCount=historyCount+self%mergerTreeImporter_%subhaloTraceCount(node)
-                   end if
-                   if (historyCount > 0) then
-                      call subhaloHistory%destroy()
-                      call subhaloHistory%create(6,int(historyCount))
-                      subhaloHistory%time(:    )=          historyTime(    1:historyCount)
-                      subhaloHistory%data(:,1:3)=transpose(position   (1:3,1:historyCount))
-                      subhaloHistory%data(:,4:6)=transpose(velocity   (1:3,1:historyCount))
-                      position_ => nodeList(iIsolatedNode)%node%position()
-                      call position_%positionHistorySet(subhaloHistory)
-                   end if
-                end if
-
              end if historyBuildHasDescendentSelect
+             ! Set the position history for this node.
+             if (self%presetPositions.and..not.nodeList(iIsolatedNode)%node%isPrimaryProgenitor()) then
+                ! Check if particle data is available for this node.
+                if (self%mergerTreeImporter_%subhaloTraceCount(node) > 0) then
+                   ! Check that arrays are large enough to hold particle data. They should be. If they are not, it's a
+                   ! bug.
+                   if (historyCount+self%mergerTreeImporter_%subhaloTraceCount(node) > size(historyTime)) then
+                      message='history arrays are too small to hold data for node '
+                      message=message//nodeList(iIsolatedNode)%node%index()//': ['//historyCount//'+'//self%mergerTreeImporter_%subhaloTraceCount(node)//']='//(historyCount+self%mergerTreeImporter_%subhaloTraceCount(node))//'>'//size(historyTime)
+                      call Galacticus_Error_Report(message//{introspection:location})
+                   end if
+                   ! Read subhalo position trace data.
+                   call self%mergerTreeImporter_%subhaloTrace                                                           &
+                        & (                                                                                             &
+                        &  node                                                                                       , &
+                        &  historyTime(  historyCount+1:historyCount+self%mergerTreeImporter_%subhaloTraceCount(node)), &
+                        &  position   (:,historyCount+1:historyCount+self%mergerTreeImporter_%subhaloTraceCount(node)), &
+                        &  velocity   (:,historyCount+1:historyCount+self%mergerTreeImporter_%subhaloTraceCount(node))  &
+                        & )
+                   ! Increment the history count for this node.
+                   historyCount=historyCount+self%mergerTreeImporter_%subhaloTraceCount(node)
+                end if                
+                if (historyCount > 0) then
+                   call subhaloHistory%destroy()
+                   call subhaloHistory%create(6,int(historyCount))
+                   subhaloHistory%time(:    )=          historyTime(    1:historyCount)
+                   subhaloHistory%data(:,1:3)=transpose(position   (1:3,1:historyCount))
+                   subhaloHistory%data(:,4:6)=transpose(velocity   (1:3,1:historyCount))
+                   position_ => nodeList(iIsolatedNode)%node%position()
+                   call position_%positionHistorySet(subhaloHistory)
+                end if
+             end if
           end if historyBuildIsolatedSelect
        end do historyBuildNodeLoop
     end if
@@ -2994,11 +3019,11 @@ contains
     call progenitors%descendentSet(self,node%descendent,nodes)
     do while (progenitors%next(nodes))
        progenitorNode => progenitors%current(nodes)
-       if     (                                                                          &
-            &                    progenitorNode%nodeIndex         /= node%nodeIndex  &
-            &  .and.             progenitorNode%isolatedNodeIndex /= readNodeReachabilityUnreachable   &
-            &  .and.  associated(progenitorNode%descendent                             ) &
-            &  .and.             progenitorNode%nodeMass           > node%nodeMass   &
+       if     (                                                                                        &
+            &                     progenitorNode%nodeIndex         /= node%nodeIndex                   &
+            &  .and.              progenitorNode%isolatedNodeIndex /= readNodeReachabilityUnreachable  &
+            &  .and.   associated(progenitorNode%descendent                                          ) &
+            &  .and.massIsGreater(progenitorNode                   ,  node                           ) &
             & ) then
           ! It does, so this is a subhalo-subhalo merger.
           readIsSubhaloSubhaloMerger =.true.
@@ -3897,10 +3922,10 @@ contains
              progenitorLocation=self%descendentLocations(progenitorIndex)
              do while (nodes(progenitorLocation)%descendentIndex == node%descendentIndex)
                 ! Determine progenitor status.
-                if     (                                                           &
-                     &   nodes(progenitorLocation)%nodeIndex /= node%nodeIndex &
-                     &  .and.                                                      &
-                     &   nodes(progenitorLocation)%nodeMass  >  node%nodeMass  &
+                if     (                                                                      &
+                     &                 nodes(progenitorLocation)%nodeIndex /= node%nodeIndex  &
+                     &  .and.                                                                 &
+                     &   massIsGreater(nodes(progenitorLocation)           ,  node          ) &
                      & ) nodeIsMostMassive=.false.
                 ! Move to the next progenitor.
                 progenitorIndex=progenitorIndex-1

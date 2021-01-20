@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -601,11 +601,11 @@ contains
     !% in units of km s$^{-1}$ Mpc).
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, treeNode
     implicit none
-    class           (darkMatterProfileDMONFW       ), intent(inout)          :: self
-    type            (treeNode                      ), intent(inout), pointer :: node
-    double precision                                , intent(in   )          :: specificAngularMomentum
-    class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
-    double precision                                                         :: specificAngularMomentumScaleFree
+    class           (darkMatterProfileDMONFW       ), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
+    double precision                                , intent(in   ) :: specificAngularMomentum
+    class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
+    double precision                                                :: specificAngularMomentumScaleFree
 
     ! Return immediately with zero radius for non-positive specific angular momenta.
     if (specificAngularMomentum <= 0.0d0) then

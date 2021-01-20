@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -98,7 +98,7 @@ program Test_Cooling_Functions
   call Assert('CMB Compton cooling timescale at z=0',timescaleCooling,976.65342064763729d0,relTol=1.0d-6)
   ! Compute Cloudy cooling time.
   coolantAtomicCIECloudy=+coolingFunctionAtomicCIECloudy_%coolingFunction(numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
-  call Assert('Cloudy CIE cooling function',coolantAtomicCIECloudy,1.4177100259738058d-30,relTol=1.0d-6)
+  call Assert('Cloudy CIE cooling function',coolantAtomicCIECloudy,1.4155d-30,relTol=1.0d-6)
   call Unit_Tests_End_Group       ()
   ! End unit tests.
   call Unit_Tests_End_Group       ()

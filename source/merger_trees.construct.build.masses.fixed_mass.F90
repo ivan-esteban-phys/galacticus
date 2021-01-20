@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -176,6 +176,14 @@ contains
     integer                                                                                    :: indexStart , i
     !$GLC attributes unused :: weight
 
+    finder=rootFinder(                                               &
+         &            rootFunction       =massEnclosed             , &
+         &            toleranceAbsolute  =1.0d-6                   , &
+         &            toleranceRelative  =1.0d-6                   , &
+         &            rangeExpandUpward  =2.0d+0                   , &
+         &            rangeExpandDownward=0.5d+0                   , &
+         &            rangeExpandType    =rangeExpandMultiplicative  &
+         &           )
     node  => treeNode      (                 )
     basic => node    %basic(autoCreate=.true.)
     call basic%timeSet            (time)
@@ -184,19 +192,7 @@ contains
        if (self%radiusTree(i) > 0.0d0) then
           ! Set the halo mass.
           call Galacticus_Calculations_Reset(node)
-          ! Convert masses to virial masses.
-          call finder%tolerance   (                                               &
-               &                   toleranceAbsolute  =1.0d-6                   , &
-               &                   toleranceRelative  =1.0d-6                     &
-               &                  )
-          call finder%rangeExpand (                                               &
-               &                   rangeExpandUpward  =2.0d+0                   , &
-               &                   rangeExpandDownward=0.5d+0                   , &
-               &                   rangeExpandType    =rangeExpandMultiplicative  &
-               &                  )
-          call finder%rootFunction(                                               &
-               &                                       massEnclosed               &
-               &                  )
+          ! Convert masses to virial masses.        
           self%massTree(i)=finder%find(rootGuess=self%massTree(i))
        end if
     end do

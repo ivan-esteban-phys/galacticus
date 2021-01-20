@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -140,7 +140,6 @@ contains
     !% Constructor for the {\normalfont \ttfamily hydrogenNetwork} chemical reaction rates class which takes a parameter set as
     !% input.
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
-    use :: Galacticus_Error             , only : Galacticus_Error_Report
     implicit none
     type   (chemicalReactionRateHydrogenNetwork   )                        :: self
     logical                                        , intent(in   )         :: fast
@@ -155,9 +154,6 @@ contains
        self%atomicHydrogenIndex      =Chemicals_Index("AtomicHydrogen"      )
        self%atomicHydrogenCationIndex=Chemicals_Index("AtomicHydrogenCation")
        self%electronIndex            =Chemicals_Index("Electron"            )
-       if (self%atomicHydrogenIndex       <= 0) call Galacticus_Error_Report('atomic hydrogen must be included for fast hydrogen network calculation'//{introspection:location})
-       if (self%atomicHydrogenCationIndex <= 0) call Galacticus_Error_Report('hydrogen cation must be included for fast hydrogen network calculation'//{introspection:location})
-       if (self%electronIndex             <= 0) call Galacticus_Error_Report('electrons must be included for fast hydrogen network calculation'      //{introspection:location})
     else
        ! Get actual hydrogen anion index.
        self%atomicHydrogenAnionIndex =Chemicals_Index("AtomicHydrogenAnion")
@@ -445,7 +441,7 @@ contains
           ! Find the chemicals in this reaction.
           atomicHydrogenChemicalIndex     =Chemicals_Index("AtomicHydrogen"     )
           atomicHydrogenAnionChemicalIndex=Chemicals_Index("AtomicHydrogenAnion")
-          chemicalHydrogenChemicalIndex   =Chemicals_Index("ChemicalHydrogen"   )
+          chemicalHydrogenChemicalIndex   =Chemicals_Index("MolecularHydrogen"  )
           electronChemicalIndex           =Chemicals_Index("Electron"           )
           ! This reaction is active if all species were found.
           reactionActive=       atomicHydrogenChemicalIndex      > 0                 &
@@ -538,9 +534,9 @@ contains
        !$omp critical(hydrogenNetworkRateH_Electron_to_Hminus_Photon_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
-          atomicHydrogenChemicalIndex        =Chemicals_Index("AtomicHydrogen"        )
-          atomicHydrogenCationChemicalIndex  =Chemicals_Index("AtomicHydrogenCation"  )
-          chemicalHydrogenCationChemicalIndex=Chemicals_Index("ChemicalHydrogenCation")
+          atomicHydrogenChemicalIndex        =Chemicals_Index("AtomicHydrogen"         )
+          atomicHydrogenCationChemicalIndex  =Chemicals_Index("AtomicHydrogenCation"   )
+          chemicalHydrogenCationChemicalIndex=Chemicals_Index("MolecularHydrogenCation")
           ! This reaction is active if all species were found.
           reactionActive=atomicHydrogenChemicalIndex > 0 .and. atomicHydrogenCationChemicalIndex > 0 .and. chemicalHydrogenCationChemicalIndex > 0
           ! Flag that the reaction is now initialized.
@@ -598,10 +594,10 @@ contains
        !$omp critical(hydrogenNetworkRateH2plus_H_to_H2_Hplus_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
-          atomicHydrogenChemicalIndex        =Chemicals_Index("AtomicHydrogen"        )
-          atomicHydrogenCationChemicalIndex  =Chemicals_Index("AtomicHydrogenCation"  )
-          chemicalHydrogenChemicalIndex      =Chemicals_Index("ChemicalHydrogen"      )
-          chemicalHydrogenCationChemicalIndex=Chemicals_Index("ChemicalHydrogenCation")
+          atomicHydrogenChemicalIndex        =Chemicals_Index("AtomicHydrogen"         )
+          atomicHydrogenCationChemicalIndex  =Chemicals_Index("AtomicHydrogenCation"   )
+          chemicalHydrogenChemicalIndex      =Chemicals_Index("MolecularHydrogen"      )
+          chemicalHydrogenCationChemicalIndex=Chemicals_Index("MolecularHydrogenCation")
           ! This reaction is active if both species were found.
           reactionActive=atomicHydrogenChemicalIndex   > 0 .and. atomicHydrogenCationChemicalIndex   > 0 .and. &
                &         chemicalHydrogenChemicalIndex > 0 .and. chemicalHydrogenCationChemicalIndex > 0
@@ -655,10 +651,10 @@ contains
        !$omp critical(hydrogenNetworkRateH_Electron_to_Hminus_Photon_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
-          atomicHydrogenChemicalIndex        =Chemicals_Index("AtomicHydrogen"        )
-          atomicHydrogenCationChemicalIndex  =Chemicals_Index("AtomicHydrogenCation"  )
-          chemicalHydrogenChemicalIndex      =Chemicals_Index("ChemicalHydrogen"      )
-          chemicalHydrogenCationChemicalIndex=Chemicals_Index("ChemicalHydrogenCation")
+          atomicHydrogenChemicalIndex        =Chemicals_Index("AtomicHydrogen"         )
+          atomicHydrogenCationChemicalIndex  =Chemicals_Index("AtomicHydrogenCation"   )
+          chemicalHydrogenChemicalIndex      =Chemicals_Index("MolecularHydrogen"      )
+          chemicalHydrogenCationChemicalIndex=Chemicals_Index("MolecularHydrogenCation")
           ! This reaction is active if all species were found.
           reactionActive=atomicHydrogenChemicalIndex   > 0 .and. atomicHydrogenCationChemicalIndex   > 0 .and. &
                &         chemicalHydrogenChemicalIndex > 0 .and. chemicalHydrogenCationChemicalIndex > 0
@@ -728,9 +724,9 @@ contains
        !$omp critical(hydrogenNetworkRateH_Electron_to_Hminus_Photon_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
-          atomicHydrogenChemicalIndex  =Chemicals_Index("AtomicHydrogen"  )
-          chemicalHydrogenChemicalIndex=Chemicals_Index("ChemicalHydrogen")
-          electronChemicalIndex        =Chemicals_Index("Electron"        )
+          atomicHydrogenChemicalIndex  =Chemicals_Index("AtomicHydrogen"   )
+          chemicalHydrogenChemicalIndex=Chemicals_Index("MolecularHydrogen")
+          electronChemicalIndex        =Chemicals_Index("Electron"         )
           ! This reaction is active if both species were found.
           reactionActive=atomicHydrogenChemicalIndex > 0 .and. chemicalHydrogenChemicalIndex > 0
           ! Flag that the reaction is now initialized.
@@ -784,8 +780,8 @@ contains
        !$omp critical(hydrogenNetworkRateH_Electron_to_Hminus_Photon_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
-          atomicHydrogenChemicalIndex  =Chemicals_Index("AtomicHydrogen"  )
-          chemicalHydrogenChemicalIndex=Chemicals_Index("ChemicalHydrogen")
+          atomicHydrogenChemicalIndex  =Chemicals_Index("AtomicHydrogen"   )
+          chemicalHydrogenChemicalIndex=Chemicals_Index("MolecularHydrogen")
           ! This reaction is active if both species were found.
           reactionActive=atomicHydrogenChemicalIndex > 0 .and. chemicalHydrogenChemicalIndex > 0
           ! Flag that the reaction is now initialized.
@@ -1060,10 +1056,10 @@ contains
        !$omp critical(hydrogenNetworkRateHminus_Hplus_to_H2plus_Electron_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
-          atomicHydrogenCationChemicalIndex  =Chemicals_Index("AtomicHydrogenCation"  )
-          atomicHydrogenAnionChemicalIndex   =Chemicals_Index("AtomicHydrogenAnion"   )
-          chemicalHydrogenCationChemicalIndex=Chemicals_Index("ChemicalHydrogenCation")
-          electronChemicalIndex              =Chemicals_Index("Electron"              )
+          atomicHydrogenCationChemicalIndex  =Chemicals_Index("AtomicHydrogenCation"   )
+          atomicHydrogenAnionChemicalIndex   =Chemicals_Index("AtomicHydrogenAnion"    )
+          chemicalHydrogenCationChemicalIndex=Chemicals_Index("MolecularHydrogenCation")
+          electronChemicalIndex              =Chemicals_Index("Electron"               )
           ! This reaction is active if both species were found.
           reactionActive= atomicHydrogenCationChemicalIndex   > 0 &
                &         .and.                                    &
@@ -1129,9 +1125,9 @@ contains
        !$omp critical(hydrogenNetworkRateH2plus_Electron_to_2H_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
-          atomicHydrogenChemicalIndex        =Chemicals_Index("AtomicHydrogen"        )
-          chemicalHydrogenCationChemicalIndex=Chemicals_Index("ChemicalHydrogenCation")
-          electronChemicalIndex              =Chemicals_Index("Electron"              )
+          atomicHydrogenChemicalIndex        =Chemicals_Index("AtomicHydrogen"         )
+          chemicalHydrogenCationChemicalIndex=Chemicals_Index("MolecularHydrogenCation")
+          electronChemicalIndex              =Chemicals_Index("Electron"               )
           ! This reaction is active if both species were found.
           reactionActive=atomicHydrogenChemicalIndex > 0 .and. chemicalHydrogenCationChemicalIndex > 0
           ! Flag that the reaction is now initialized.
@@ -1185,10 +1181,10 @@ contains
        !$omp critical(hydrogenNetworkRateH2plus_Hminus_to_H2_H_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
-          chemicalHydrogenCationChemicalIndex=Chemicals_Index("ChemicalHydrogenCation")
-          atomicHydrogenAnionChemicalIndex   =Chemicals_Index("AtomicHydrogenAnion"   )
-          chemicalHydrogenChemicalIndex      =Chemicals_Index("ChemicalHydrogen"      )
-          atomicHydrogenChemicalIndex        =Chemicals_Index("AtomicHydrogen"        )
+          chemicalHydrogenCationChemicalIndex=Chemicals_Index("MolecularHydrogenCation")
+          atomicHydrogenAnionChemicalIndex   =Chemicals_Index("AtomicHydrogenAnion"    )
+          chemicalHydrogenChemicalIndex      =Chemicals_Index("MolecularHydrogen"      )
+          atomicHydrogenChemicalIndex        =Chemicals_Index("AtomicHydrogen"         )
           ! This reaction is active if both species were found.
           reactionActive=chemicalHydrogenCationChemicalIndex > 0 .and. atomicHydrogenAnionChemicalIndex > 0 .and. &
                &         chemicalHydrogenChemicalIndex       > 0 .and. atomicHydrogenChemicalIndex      > 0
@@ -1338,9 +1334,9 @@ contains
        !$omp critical(hydrogenNetworkRateH2plus_Gamma_to_H_Hplus)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
-          chemicalHydrogenCationChemicalIndex=Chemicals_Index("ChemicalHydrogenCation")
-          atomicHydrogenChemicalIndex        =Chemicals_Index("AtomicHydrogen"        )
-          atomicHydrogenCationChemicalIndex  =Chemicals_Index("AtomicHydrogenCation"  )
+          chemicalHydrogenCationChemicalIndex=Chemicals_Index("MolecularHydrogenCation")
+          atomicHydrogenChemicalIndex        =Chemicals_Index("AtomicHydrogen"         )
+          atomicHydrogenCationChemicalIndex  =Chemicals_Index("AtomicHydrogenCation"   )
           ! This reaction is active if all species were found.
           reactionActive=chemicalHydrogenCationChemicalIndex > 0 .and. atomicHydrogenChemicalIndex > 0 .and. atomicHydrogenCationChemicalIndex > 0
           ! Flag that the reaction is now initialized.
@@ -1432,7 +1428,7 @@ contains
        !$omp critical(hydrogenNetworkRateH2_Gamma_to_H2star_to_2H)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
-          chemicalHydrogenChemicalIndex=Chemicals_Index("ChemicalHydrogen")
+          chemicalHydrogenChemicalIndex=Chemicals_Index("MolecularHydrogen")
           atomicHydrogenChemicalIndex  =Chemicals_Index("AtomicHydrogen"   )
           ! This reaction is active if all species were found.
           reactionActive=chemicalHydrogenChemicalIndex > 0 .and. atomicHydrogenChemicalIndex > 0
@@ -1486,9 +1482,9 @@ contains
        !$omp critical(hydrogenNetworkRateH2_Gamma_to_H2plus_Electron)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
-          chemicalHydrogenChemicalIndex      =Chemicals_Index("ChemicalHydrogen"      )
-          chemicalHydrogenCationChemicalIndex=Chemicals_Index("ChemicalHydrogenCation")
-          electronChemicalIndex              =Chemicals_Index("Electron"              )
+          chemicalHydrogenChemicalIndex      =Chemicals_Index("MolecularHydrogen"      )
+          chemicalHydrogenCationChemicalIndex=Chemicals_Index("MolecularHydrogenCation")
+          electronChemicalIndex              =Chemicals_Index("Electron"               )
           ! This reaction is active if all species were found.
           reactionActive=       chemicalHydrogenChemicalIndex       > 0 &
                &          .and. chemicalHydrogenCationChemicalIndex > 0 &
@@ -1576,9 +1572,9 @@ contains
        !$omp critical(hydrogenNetworkRateH2plus_Gamma_to_2Hplus_Electron)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
-          atomicHydrogenCationChemicalIndex  =Chemicals_Index("AtomicHydrogenCation"  )
-          chemicalHydrogenCationChemicalIndex=Chemicals_Index("ChemicalHydrogenCation")
-          electronChemicalIndex              =Chemicals_Index("Electron"              )
+          atomicHydrogenCationChemicalIndex  =Chemicals_Index("AtomicHydrogenCation"   )
+          chemicalHydrogenCationChemicalIndex=Chemicals_Index("MolecularHydrogenCation")
+          electronChemicalIndex              =Chemicals_Index("Electron"               )
           ! This reaction is active if all species were found.
           reactionActive=       atomicHydrogenCationChemicalIndex   > 0 &
                &          .and. chemicalHydrogenCationChemicalIndex > 0 &
@@ -1663,8 +1659,8 @@ contains
        !$omp critical(hydrogenNetworkRateH2_Gamma_to_2H)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
-          atomicHydrogenChemicalIndex  =Chemicals_Index("AtomicHydrogen"  )
-          chemicalHydrogenChemicalIndex=Chemicals_Index("ChemicalHydrogen")
+          atomicHydrogenChemicalIndex  =Chemicals_Index("AtomicHydrogen"   )
+          chemicalHydrogenChemicalIndex=Chemicals_Index("MolecularHydrogen")
           ! This reaction is active if all species were found.
           reactionActive=       atomicHydrogenChemicalIndex   > 0 &
                &          .and. chemicalHydrogenChemicalIndex > 0

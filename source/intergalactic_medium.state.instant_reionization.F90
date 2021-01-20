@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -159,23 +159,17 @@ contains
             &                                                                  reionizationRedshiftCanonical &
             &                                                                 )                              &
             &                                                                )
-       if (.not.finder%isInitialized()) then
-          call finder%rootFunction(                                                             &
-               &                   opticalDepth                                                 &
-               &                  )
-          call finder%tolerance   (                                                             &
-               &                   toleranceAbsolute            =1.0d-3                       , &
-               &                   toleranceRelative            =1.0d-3                         &
-               &                  )
-          call finder%rangeExpand (                                                             &
-               &                   rangeExpandDownward          =0.5d0                        , &
-               &                   rangeExpandUpward            =2.0d0                        , &
-               &                   rangeExpandType              =rangeExpandMultiplicative    , &
-               &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
-               &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
-               &                   rangeUpwardLimit             =timePresent                    &
-               &                  )
-       end if
+       finder=rootFinder(                                                             &
+            &            rootFunction                 =opticalDepth                 , &
+            &            toleranceAbsolute            =1.0d-3                       , &
+            &            toleranceRelative            =1.0d-3                       , &
+            &            rangeExpandDownward          =0.5d0                        , &
+            &            rangeExpandUpward            =2.0d0                        , &
+            &            rangeExpandType              =rangeExpandMultiplicative    , &
+            &            rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
+            &            rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
+            &            rangeUpwardLimit             =timePresent                    &
+            &           )
        self%reionizationTime=finder%find(rootGuess=timeReionizationGuess)
        ! Unset electron scattering table initialization state to force it to be recomputed now that we have the correct
        ! reionization epoch.

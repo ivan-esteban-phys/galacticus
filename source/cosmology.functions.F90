@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -250,5 +250,16 @@ module Cosmology_Functions
 
   ! A recommended relative time tolerance to which other functions should approach the Big Crunch.
   double precision, parameter, public :: timeToleranceRelativeBigCrunch=1.0d-4
+
+  ! Enumeration for different cosmological densities.
+  !# <enumeration>
+  !#  <name>densityCosmological</name>
+  !#  <description>Enumeration of different cosmological densities.</description>
+  !#  <visibility>public</visibility>
+  !#  <validator>yes</validator>
+  !#  <encodeFunction>yes</encodeFunction>
+  !#  <entry label="critical" />
+  !#  <entry label="mean"     />
+  !# </enumeration>
 
 end module Cosmology_Functions

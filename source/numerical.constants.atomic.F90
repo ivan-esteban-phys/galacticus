@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -32,6 +32,7 @@ module Numerical_Constants_Atomic
   ! Atomic masses.
   double precision, parameter :: atomicMassHydrogen                =1.007825d0
   double precision, parameter :: atomicMassHelium                  =4.002602d0
+  double precision, parameter :: atomicMassLithium7                =7.016004d0
 
   ! Mass of hydrogen and helium atom (in kg).
   double precision, parameter :: massHydrogenAtom                  =atomicMassHydrogen*atomicMassUnit

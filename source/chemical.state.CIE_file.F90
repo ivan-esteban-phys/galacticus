@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -594,7 +594,7 @@ contains
     character       (len=*               ), intent(in   ) :: fileName
     double precision                      , parameter     :: metallicityLogarithmicZero=-999.0d0
     type            (varying_string      )                :: limitType
-    integer                                               :: fileFormatVersion
+    integer                                               :: fileFormatVersion                  , status
     type            (hdf5Object          )                :: chemicalStateFile                  , metallicityDataset, &
          &                                                   temperatureDataset
 
@@ -707,14 +707,14 @@ contains
     self%interpolatorTemperature=interpolator(self%temperatures )
     self%interpolatorMetallicity=interpolator(self%metallicities)
     ! Get chemical indices.
-    self%electronChemicalIndex               =Chemicals_Index("Electron"            )
+    self%electronChemicalIndex               =Chemicals_Index("Electron"            ,status)
     if (self%gotHydrogenAtomic) then
-       self%atomicHydrogenChemicalIndex      =Chemicals_Index("AtomicHydrogen"      )
+       self%atomicHydrogenChemicalIndex      =Chemicals_Index("AtomicHydrogen"      ,status)
     else
        self%atomicHydrogenChemicalIndex      =-1
     end if
     if (self%gotHydrogenCation) then
-       self%atomicHydrogenCationChemicalIndex=Chemicals_Index("AtomicHydrogenCation")
+       self%atomicHydrogenCationChemicalIndex=Chemicals_Index("AtomicHydrogenCation",status)
     else
        self%atomicHydrogenCationChemicalIndex=-1
     end if

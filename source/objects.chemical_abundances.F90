@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -118,7 +118,7 @@ contains
     use :: Memory_Management  , only : allocateArray
     implicit none
     integer                    :: iChemical
-    type   (chemicalStructure) :: thisChemical
+    type   (chemicalStructure) :: chemical
 
     ! Check if this module has been initialized already.
     if (.not.chemicalAbundancesInitialized) then
@@ -148,9 +148,9 @@ contains
              chemicalNameLengthMaximum=0
              do iChemical=1,chemicalsCount
                 chemicalsIndices(iChemical)=Chemical_Database_Get_Index(char(chemicalsToTrack(iChemical)))
-                call thisChemical%retrieve(char(chemicalsToTrack(iChemical)))
-                chemicalsCharges(iChemical)=dble(thisChemical%charge())
-                chemicalsMasses (iChemical)=     thisChemical%mass  ()
+                call chemical%retrieve(char(chemicalsToTrack(iChemical)))
+                chemicalsCharges(iChemical)=dble(chemical%charge())
+                chemicalsMasses (iChemical)=     chemical%mass  ()
                 if (len(chemicalsToTrack(iChemical)) > chemicalNameLengthMaximum) chemicalNameLengthMaximum=len(chemicalsToTrack(iChemical))
              end do
           end if
@@ -198,20 +198,28 @@ contains
     return
   end function Chemicals_Names
 
-  integer function Chemicals_Index(chemicalName)
+  integer function Chemicals_Index(chemicalName,status)
     !% Returns the index of a chemical in the chemical abundances structure given the {\normalfont \ttfamily chemicalName}.
+    use :: Galacticus_Error  , only : Galacticus_Error_Report, errorStatusFail, errorStatusSuccess
     use :: ISO_Varying_String, only : operator(==)
     implicit none
-    character(len=*), intent(in   ) :: chemicalName
-    integer                         :: iChemical
+    character(len=*), intent(in   )           :: chemicalName
+    integer         , intent(  out), optional :: status
+    integer                                   :: iChemical
 
     Chemicals_Index=-1 ! Indicates chemical not found.
     do iChemical=1,chemicalsCount
        if (chemicalsToTrack(iChemical) == trim(chemicalName)) then
           Chemicals_Index=iChemical
+          if (present(status)) status=errorStatusSuccess
           return
        end if
     end do
+    if (present(status)) then
+       status=errorStatusFail
+    else
+       call Galacticus_Error_Report('chemical species "'//trim(chemicalName)//'" is not available - to track this species add it to the <chemicalsToTrack> parameter'//{introspection:location})
+    end if
     return
   end function Chemicals_Index
 

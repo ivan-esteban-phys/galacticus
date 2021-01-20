@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -114,10 +114,11 @@ contains
     use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     class           (gravitationalLensingBaryonicModifier), intent(inout) :: self
-    double precision                                      , intent(in   ) :: redshift               , scaleSource
-    double precision                                      , parameter     :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
+    double precision                                      , intent(in   ) :: redshift                 , scaleSource
+    double precision                                      , parameter     :: toleranceAbsolute =0.0d0 , toleranceRelative=1.0d-6
     type            (rootFinder                          ), save          :: finder
-    !$omp threadprivate(finder)
+    logical                                               , save          :: finderConstructed=.false.
+    !$omp threadprivate(finder,finderConstructed)
 
     ! Exit if nothing has changed since the previous call.
     if (redshift == self%redshiftPrevious .and. scaleSource == self%scaleSourcePrevious) return
@@ -134,16 +135,18 @@ contains
        return
     end if
     ! Find the magnification at which we transition from additive to multiplicative correction.
-    if (.not.finder%isInitialized()) then
-       call finder%rootFunction(magnificationTransition            )
-       call finder%tolerance   (toleranceAbsolute,toleranceRelative)
-       call finder%rangeExpand (                                                             &
-            &                   rangeExpandUpward            =2.0d0                        , &
-            &                   rangeExpandDownward          =0.5d0                        , &
-            &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
-            &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
-            &                   rangeExpandType              =rangeExpandMultiplicative      &
-            &                  )
+    if (.not.finderConstructed) then
+       finder=rootFinder(                                                             &
+            &            rootFunction                 =magnificationTransition      , &
+            &            toleranceAbsolute            =toleranceAbsolute            , &
+            &            toleranceRelative            =toleranceRelative            , &
+            &            rangeExpandUpward            =2.0d0                        , &
+            &            rangeExpandDownward          =0.5d0                        , &
+            &            rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
+            &            rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
+            &            rangeExpandType              =rangeExpandMultiplicative      &
+            &           )
+       finderConstructed=.true.
     end if
     self%transitionMagnification=finder%find(rootGuess=2.0d0)
     ! Find renormalization.

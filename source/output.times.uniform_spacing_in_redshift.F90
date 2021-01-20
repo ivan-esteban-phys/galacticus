@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,10 +18,10 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !# <outputTimes name="outputTimesUniformSpacingInRedshift">
-  !#  <description>An output times class which simply reads a uniformSpacingInRedshift of output times from a parameter.</description>
+  !#  <description>An output times class which generates a set of output times spaced uniformly in redshift.</description>
   !# </outputTimes>
   type, extends(outputTimesList) :: outputTimesUniformSpacingInRedshift
-     !% Implementation of an output times class which reads a uniformSpacingInRedshift of output times from a parameter.
+     !% Implementation of an output times class which generates a set of output times spaced uniformly in redshift.
      private
      double precision           :: redshiftMinimum, redshiftMaximum
      integer         (c_size_t) :: countRedshifts
@@ -68,7 +68,7 @@ contains
   end function uniformSpacingInRedshiftConstructorParameters
 
   function uniformSpacingInRedshiftConstructorInternal(redshiftMinimum,redshiftMaximum,countRedshifts,cosmologyFunctions_) result(self)
-    !% Constructor for the {\normalfont \ttfamily uniformSpacingInRedshift} output times class which takes a parameter set as input.
+    !% Internal constructor for the {\normalfont \ttfamily uniformSpacingInRedshift} output times class.
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLinear
     implicit none
     type            (outputTimesUniformSpacingInRedshift)                        :: self
@@ -76,7 +76,7 @@ contains
     integer         (c_size_t                           ), intent(in   )         :: countRedshifts
     class           (cosmologyFunctionsClass            ), intent(in   ), target :: cosmologyFunctions_
     integer         (c_size_t                           )                        :: i
-    !# <constructorAssign variables="redshiftMinimum,redshiftMaximum,countRedshifts, *cosmologyFunctions_"/>
+    !# <constructorAssign variables="redshiftMinimum, redshiftMaximum, countRedshifts, *cosmologyFunctions_"/>
 
     allocate(self%times    (countRedshifts))
     allocate(self%redshifts(countRedshifts))

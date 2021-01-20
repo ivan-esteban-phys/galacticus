@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -381,9 +381,9 @@ contains
     !% Record any major merger of {\normalfont \ttfamily node}.
     use :: Galacticus_Nodes, only : defaultMergingStatisticsComponent, nodeComponentBasic, nodeComponentMergingStatistics, treeNode
     implicit none
-    type (treeNode                      ), intent(inout), pointer :: node
-    class(nodeComponentMergingStatistics)               , pointer :: mergingStatisticsParent
-    class(nodeComponentBasic            )               , pointer :: parentBasicComponent   , basic
+    type (treeNode                      ), intent(inout) :: node
+    class(nodeComponentMergingStatistics), pointer       :: mergingStatisticsParent
+    class(nodeComponentBasic            ), pointer       :: parentBasicComponent   , basic
 
     ! Return immediately if this class is not active.
     if (.not.defaultMergingStatisticsComponent%standardIsActive()) return
@@ -486,8 +486,8 @@ contains
     implicit none
     class(*                             ), intent(inout)          :: self
     type (treeNode                      ), intent(inout), pointer :: node             , nodePromotion
-    class(nodeComponentMergingStatistics)               , pointer :: mergingStatistics
-    class(nodeComponentBasic            )               , pointer :: basicParent
+    class(nodeComponentMergingStatistics), pointer                :: mergingStatistics
+    class(nodeComponentBasic            ), pointer                :: basicParent
     !$GLC attributes unused :: self
 
     mergingStatistics => node         %mergingStatistics()

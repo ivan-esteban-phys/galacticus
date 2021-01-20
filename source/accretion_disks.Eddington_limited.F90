@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -131,8 +131,8 @@ contains
   end function eddingtonLimitedPowerJet
 
   double precision function eddingtonLimitedRateSpinUp(self,blackHole,accretionRateMass)
-    !% Computes the spin up rate of the black hole in {\normalfont \ttfamily thisNode} due to accretion from an Eddington-limited
-    !% accretion disk.  disk. This is always zero, as no physical model is specified for this accretion disk method.
+    !% Computes the spin up rate of the given {\normalfont \ttfamily blackHole} due to accretion from an Eddington-limited
+    !% accretion disk. This is always zero, as no physical model is specified for this accretion disk method.
     implicit none
     class           (accretionDisksEddingtonLimited), intent(inout) :: self
     class           (nodeComponentBlackHole        ), intent(inout) :: blackHole

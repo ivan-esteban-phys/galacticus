@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -122,7 +122,7 @@ contains
     use :: Galacticus_Display  , only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, &
          &                              verbosityStandard
     use :: File_Utilities      , only : Count_Lines_in_File
-    use :: Hashes              , only : rank1IntegerSizeTPtrHash , rank1DoublePtrHash         , rank2DoublePtrHash
+    use :: Hashes              , only : rank1IntegerSizeTPtrHash , rank2IntegerSizeTPtrHash   , rank1DoublePtrHash        , rank2DoublePtrHash
     use :: String_Handling     , only : String_Split_Words       , String_Count_Words
     implicit none
     class           (nbodyImporterMillenniumCSV), intent(inout)                              :: self
@@ -171,6 +171,7 @@ contains
     open(newUnit=file,file=char(self%fileName),status='old',form='formatted',iostat=status)
     do while (status == 0)
        read (file,'(a)',iostat=status) line
+       if (status /= 0) exit
        isComment=line(1:1) == "#"
        if (.not.isComment) then
           if (.not.readHeader) then
@@ -264,9 +265,10 @@ contains
             &        /self    %cosmologyParameters_%HubbleConstant (hubbleUnitsLittleH)
     end do
     ! Set positions, velocities, and particleIDs.
-    simulations(1)%propertiesInteger  =rank1IntegerSizeTPtrHash()
-    simulations(1)%propertiesReal     =rank1DoublePtrHash      ()
-    simulations(1)%propertiesRealRank1=rank2DoublePtrHash      ()
+    simulations(1)%propertiesInteger     =rank1IntegerSizeTPtrHash()
+    simulations(1)%propertiesIntegerRank1=rank2IntegerSizeTPtrHash()
+    simulations(1)%propertiesReal        =rank1DoublePtrHash      ()
+    simulations(1)%propertiesRealRank1   =rank2DoublePtrHash      ()
     call simulations(1)%propertiesRealRank1%set('position'  ,position  )
     call simulations(1)%propertiesRealRank1%set('velocity'  ,velocity  )
     call simulations(1)%propertiesInteger  %set('particleID',particleID)

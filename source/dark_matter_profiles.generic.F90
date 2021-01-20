@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -552,15 +552,16 @@ contains
     genericSelf => self
     genericNode => node
     genericTime =  time
-    call finder%rootFunction(rootRadiusFreefall                  )
-    call finder%tolerance   (toleranceAbsolute ,toleranceRelative)
-    call finder%rangeExpand (                                                             &
-         &                   rangeExpandDownward          =0.5d0                        , &
-         &                   rangeExpandUpward            =2.0d0                        , &
-         &                   rangeExpandType              =rangeExpandMultiplicative    , &
-         &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-         &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative  &
-         &                  )
+    finder      =  rootFinder(                                                             &
+         &                    rootFunction                 =rootRadiusFreefall           , &
+         &                    toleranceAbsolute            =toleranceAbsolute            , &
+         &                    toleranceRelative            =toleranceRelative            , &
+         &                    rangeExpandDownward          =0.5d0                        , &
+         &                    rangeExpandUpward            =2.0d0                        , &
+         &                    rangeExpandType              =rangeExpandMultiplicative    , &
+         &                    rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+         &                    rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative  &
+         &                   )
     genericFreefallRadiusNumerical=finder%find(rootGuess=self%darkMatterHaloScale_%virialRadius(node))
     return
   end function genericFreefallRadiusNumerical
@@ -642,15 +643,16 @@ contains
     genericSelf    => self
     genericNode    => node
     genericDensity =  density
-    call finder%rootFunction(rootDensity                         )
-    call finder%tolerance   (toleranceAbsolute ,toleranceRelative)
-    call finder%rangeExpand (                                                             &
-         &                   rangeExpandDownward          =0.5d0                        , &
-         &                   rangeExpandUpward            =2.0d0                        , &
-         &                   rangeExpandType              =rangeExpandMultiplicative    , &
-         &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
-         &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive  &
-         &                  )
+    finder      =  rootFinder(                                                             &
+         &                    rootFunction                 =rootDensity                  , &
+         &                    toleranceAbsolute            =toleranceAbsolute            , &
+         &                    toleranceRelative            =toleranceRelative            , &
+         &                    rangeExpandDownward          =0.5d0                        , &
+         &                    rangeExpandUpward            =2.0d0                        , &
+         &                    rangeExpandType              =rangeExpandMultiplicative    , &
+         &                    rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
+         &                    rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive  &
+         &                   )
     genericRadiusEnclosingDensityNumerical=finder%find(rootGuess=self%darkMatterHaloScale_%virialRadius(node))
     return
   end function genericRadiusEnclosingDensityNumerical
@@ -684,14 +686,15 @@ contains
     genericSelf => self
     genericNode => node
     genericMass =  mass
-    call finder%rootFunction(rootMass                            )
-    call finder%tolerance   (toleranceAbsolute ,toleranceRelative)
-    call finder%rangeExpand (                                                             &
-         &                   rangeExpandUpward            =2.0d0                        , &
-         &                   rangeExpandType              =rangeExpandMultiplicative    , &
-         &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-         &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative  &
-         &                  )
+    finder      =  rootFinder(                                                             &
+         &                    rootFunction                 =rootMass                     , &
+         &                    toleranceAbsolute            =toleranceAbsolute            , &
+         &                    toleranceRelative            =toleranceRelative            , &
+         &                    rangeExpandUpward            =2.0d0                        , &
+         &                    rangeExpandType              =rangeExpandMultiplicative    , &
+         &                    rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+         &                    rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative  &
+         &                   )
     genericRadiusEnclosingMassNumerical=finder%find(rootRange=[0.0d0,self%darkMatterHaloScale_%virialRadius(node)])
     return
   end function genericRadiusEnclosingMassNumerical
@@ -718,15 +721,16 @@ contains
 
     genericSelf => self
     genericNode => node
-    call finder%rootFunction(rootCircularVelocityMaximum                  )
-    call finder%tolerance   (toleranceAbsolute          ,toleranceRelative)
-    call finder%rangeExpand (                                                             &
-         &                   rangeExpandDownward          =0.5d0                        , &
-         &                   rangeExpandUpward            =2.0d0                        , &
-         &                   rangeExpandType              =rangeExpandMultiplicative    , &
-         &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
-         &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive  &
-         &                  )
+    finder      =  rootFinder(                                                             &
+         &                    rootFunction                 =rootCircularVelocityMaximum  , &
+         &                    toleranceAbsolute            =toleranceAbsolute            , &
+         &                    toleranceRelative            =toleranceRelative            , &
+         &                    rangeExpandDownward          =0.5d0                        , &
+         &                    rangeExpandUpward            =2.0d0                        , &
+         &                    rangeExpandType              =rangeExpandMultiplicative    , &
+         &                    rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
+         &                    rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive  &
+         &                   )
     ! Isothermal profiles have dVc²/dr=0 everywhere. To handle these profiles, first test if the root function is sufficiently
     ! close to zero at the virial radius (which it will be for an isothermal profile), and return the circular velocity at that
     ! radius if so. Otherwise solve for the radius corresponding to the maximum circular velocity.
@@ -770,23 +774,24 @@ contains
     !% in units of km s$^{-1}$ Mpc).
     use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
-    class           (darkMatterProfileGeneric), intent(inout), target  :: self
-    type            (treeNode                ), intent(inout), pointer :: node
-    double precision                          , intent(in   )          :: specificAngularMomentum
-    double precision                          , parameter              :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
-    type            (rootFinder              )                         :: finder
+    class           (darkMatterProfileGeneric), intent(inout), target :: self
+    type            (treeNode                ), intent(inout), target :: node
+    double precision                          , intent(in   )         :: specificAngularMomentum
+    double precision                          , parameter             :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
+    type            (rootFinder              )                        :: finder
 
     genericSelf                    => self
     genericNode                    => node
     genericSpecificAngularMomentum =  specificAngularMomentum
-    call finder%rootFunction(rootSpecificAngularMomentum                  )
-    call finder%tolerance   (toleranceAbsolute          ,toleranceRelative)
-    call finder%rangeExpand (                                                             &
-         &                   rangeExpandUpward            =2.0d0                        , &
-         &                   rangeExpandType              =rangeExpandMultiplicative    , &
-         &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-         &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative  &
-         &                  )
+    finder                         =  rootFinder(                                                             &
+         &                                       rootFunction                 =rootSpecificAngularMomentum  , &
+         &                                       toleranceAbsolute            =toleranceAbsolute            , &
+         &                                       toleranceRelative            =toleranceRelative            , &
+         &                                       rangeExpandUpward            =2.0d0                        , &
+         &                                       rangeExpandType              =rangeExpandMultiplicative    , &
+         &                                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+         &                                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative  &
+         &                                      )
     genericRadiusFromSpecificAngularMomentumNumerical=finder%find(rootRange=[0.0d0,self%darkMatterHaloScale_%virialRadius(node)])
     return
   end function genericRadiusFromSpecificAngularMomentumNumerical

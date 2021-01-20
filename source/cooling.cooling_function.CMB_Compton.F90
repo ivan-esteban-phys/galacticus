@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -41,6 +41,7 @@
    contains
      final     ::                                       cmbComptonDestructor
      procedure :: coolingFunction                    => cmbComptonCoolingFunction
+     procedure :: coolingFunctionFractionInBand      => cmbComptonCoolingFunctionFractionInBand
      procedure :: coolingFunctionTemperatureLogSlope => cmbComptonCoolingFunctionTemperatureLogSlope
      procedure :: coolingFunctionDensityLogSlope     => cmbComptonCoolingFunctionDensityLogSlope
   end type coolingFunctionCMBCompton
@@ -128,6 +129,25 @@ contains
          &                     )
     return
   end function cmbComptonCoolingFunction
+
+  double precision function cmbComptonCoolingFunctionFractionInBand(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation,energyLow,energyHigh)
+    !% Return the fraction of the cooling function due to Compton scattering off of \gls{cmb} photons due to emission in the given
+    !% band. Since this coolant involves no photon emission the fraction is identically zero.
+    use :: Abundances_Structure         , only : abundances
+    use :: Chemical_Abundances_Structure, only : chemicalAbundances
+    use :: Radiation_Fields             , only : radiationFieldClass
+    implicit none
+    class           (coolingFunctionCMBCompton), intent(inout) :: self
+    double precision                           , intent(in   ) :: numberDensityHydrogen, temperature, &
+         &                                                        energyLow            , energyHigh
+    type            (abundances               ), intent(in   ) :: gasAbundances
+    type            (chemicalAbundances       ), intent(in   ) :: chemicalDensities
+    class           (radiationFieldClass      ), intent(inout) :: radiation
+    !$GLC attributes unused :: self, numberDensityHydrogen, temperature, gasAbundances, chemicalDensities, radiation, energyLow, energyHigh
+
+    cmbComptonCoolingFunctionFractionInBand=0.0d0
+    return
+  end function cmbComptonCoolingFunctionFractionInBand
 
   double precision function cmbComptonCoolingFunctionDensityLogSlope(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     !% Return the logarithmic gradient with respect to density of the cooling function due to Compton scattering off of \gls{cmb}
