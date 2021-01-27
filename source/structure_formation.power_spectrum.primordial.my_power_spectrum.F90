@@ -24,8 +24,8 @@
   !#   Implements a broken power-law primordial power spectrum, possibly with a running index. The primordial power spectrum has the
   !#   form:
   !#   \begin{equation}
-  !#     P(k) \propto \begin{cases} k^{n_\mathrm{eff}(k)} \; &amp; \mathrm{if} \, k \leq k_\mathrm{cut} \\ 
-  !#                                k^{n_\mathrm{cut}} \; &amp; \mathrm{if} \, k \geq k_\mathrm{cut}
+  !#     P(k) \propto \begin{cases} k^{n_\mathrm{eff}(k)} &amp; \mathrm{if} \, k \leq k_\mathrm{cut} \\ 
+  !#                                k^{n_\mathrm{cut}} &amp; \mathrm{if} \, k \geq k_\mathrm{cut}
   !#    \end{cases}
   !#   \end{equation}
   !#   where
@@ -146,13 +146,24 @@ contains
          &                 )                          &
          &            )
     
-    if (wavenumber > self%wavenumberCut) then
+    if (wavenumber > self%wavenumberCut) then !% Enforce continuity of the power spectrum
        myPowerSpectrumPower=+(                                  &
-            &          +             wavenumber          &
-            &          /        self%wavenumberReference &
-            &         )**(                               &
-            &             +self%indexCut                 &
-            &            )
+         &          +        self%wavenumberCut       &
+         &          /        self%wavenumberReference &
+         &         )**(                               &
+         &             +self%index                    &
+         &             +0.5d0                         &
+         &             *self%running                  &
+         &             *log(                          &
+         &                  +self%wavenumberCut       &
+         &                  /self%wavenumberReference &
+         &                 )                          &
+         &            )*(                             &
+         &          +             wavenumber          &
+         &          /        self%wavenumberCut       &
+         &         )**(                               &
+         &             +self%indexCut                 &
+         &            )
     end if
 
     return
