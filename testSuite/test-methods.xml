@@ -229,6 +229,9 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
+    <outputTimesMethod value="list">
+      <redshifts value="0.0 0.1"/>
+    </outputTimesMethod>
     <luminosityFilter value="RGO_I SDSS_g SDSS_r SDSS_i"/>
     <luminosityRedshift value="0.0 0.1 0.1 0.1"/>
     <luminosityType value="rest observed observed observed"/>
@@ -630,15 +633,15 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
+    <outputTimesMethod value="list">
+      <redshifts value="0.0 0.1"/>
+    </outputTimesMethod>
     <luminosityFilter value="RGO_I SDSS_g SDSS_r SDSS_i"/>
     <luminosityType value="rest observed observed observed"/>
     <luminosityRedshift value="0.0 0.1 0.1 0.1"/>
-    
-  <initialMassFunctionMethod value="chabrier2001"/>
-    
-  <initialMassFunctionMethod value="kroupa2001"/>
-    
-  <initialMassFunctionMethod value="salpeter1955"/>
+    <initialMassFunctionMethod value="chabrier2001"/>
+    <initialMassFunctionMethod value="kroupa2001"/>
+    <initialMassFunctionMethod value="salpeter1955"/>
   </parameters>
 
   <!-- Calculation of luminosities at all output redshifts -->
@@ -649,9 +652,8 @@
     <luminosityType value="rest observed observed observed"/>
     <luminosityRedshift value="all all all all"/>
     <outputTimesMethod value="list">
-    <redshifts value="0.064 0.041 0.020 0.000"/>
-  </outputTimesMethod>
-
+      <redshifts value="0.064 0.041 0.020 0.000"/>
+    </outputTimesMethod>
   </parameters>
 
   <!-- Calculation of luminosities with top-hat filters -->
@@ -662,9 +664,8 @@
     <luminosityType value="rest rest rest rest"/>
     <luminosityRedshift value="0.0 0.0 0.0 0.0"/>
     <outputTimesMethod value="list">
-    <redshifts value="0.0"/>
-  </outputTimesMethod>
-
+      <redshifts value="0.0"/>
+    </outputTimesMethod>
   </parameters>
 
   <!-- Calculation of luminosities with array of top-hat filters -->
@@ -675,9 +676,8 @@
     <luminosityType value="rest"/>
     <luminosityRedshift value="0.0"/>
     <outputTimesMethod value="list">
-    <redshifts value="0.0"/>
-  </outputTimesMethod>
-
+      <redshifts value="0.0"/>
+    </outputTimesMethod>
   </parameters>
 
   <!-- Black hole wind efficiencies -->
@@ -710,10 +710,15 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <nodeOperatorMethod value="multi">
-      <nodeOperatorMethod value="starFormationDisks"/>
-      <nodeOperatorMethod value="starFormationSpheroids"/>
+      <!-- Halo spins -->
+      <nodeOperatorMethod value="haloSpinRandom" iterable="no">
+	<factorReset value="2.0"/>
+      </nodeOperatorMethod>
+      <!-- Star formation -->
+      <nodeOperatorMethod value="starFormationDisks" iterable="no"/>
+      <nodeOperatorMethod value="starFormationSpheroids" iterable="no"/>
       <!--Stellar feedback outflows-->
-      <nodeOperatorMethod value="stellarFeedbackDisks">
+      <nodeOperatorMethod value="stellarFeedbackDisks" iterable="no">
 	<stellarFeedbackOutflowsMethod value="rateLimit">
           <timescaleOutflowFractionalMinimum value="0.001"/>
           <stellarFeedbackOutflowsMethod value="powerLaw">
@@ -722,7 +727,7 @@
           </stellarFeedbackOutflowsMethod>
 	</stellarFeedbackOutflowsMethod>
       </nodeOperatorMethod>
-      <nodeOperatorMethod value="stellarFeedbackSpheroids">
+      <nodeOperatorMethod value="stellarFeedbackSpheroids" iterable="no">
 	<stellarFeedbackOutflowsMethod value="rateLimit">
           <timescaleOutflowFractionalMinimum value="0.001"/>
           <stellarFeedbackOutflowsMethod value="powerLaw">
@@ -731,7 +736,7 @@
           </stellarFeedbackOutflowsMethod>
 	</stellarFeedbackOutflowsMethod>
       </nodeOperatorMethod>
-      <nodeOperatorMethod value="ramPressureMassLossDisks"/>
+      <nodeOperatorMethod value="ramPressureMassLossDisks" iterable="no"/>
     </nodeOperatorMethod>
     <ramPressureStrippingMethod value="simpleCylindrical"/>
   </parameters>
@@ -739,10 +744,15 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <nodeOperatorMethod value="multi">
-      <nodeOperatorMethod value="starFormationDisks"/>
-      <nodeOperatorMethod value="starFormationSpheroids"/>
+      <!-- Halo spins -->
+      <nodeOperatorMethod value="haloSpinRandom" iterable="no">
+	<factorReset value="2.0"/>
+      </nodeOperatorMethod>
+      <!-- Star formation -->
+      <nodeOperatorMethod value="starFormationDisks" iterable="no"/>
+      <nodeOperatorMethod value="starFormationSpheroids" iterable="no"/>
       <!--Stellar feedback outflows-->
-      <nodeOperatorMethod value="stellarFeedbackDisks">
+      <nodeOperatorMethod value="stellarFeedbackDisks" iterable="no">
 	<stellarFeedbackOutflowsMethod value="rateLimit">
           <timescaleOutflowFractionalMinimum value="0.001"/>
           <stellarFeedbackOutflowsMethod value="powerLaw">
@@ -751,7 +761,7 @@
           </stellarFeedbackOutflowsMethod>
 	</stellarFeedbackOutflowsMethod>
       </nodeOperatorMethod>
-      <nodeOperatorMethod value="stellarFeedbackSpheroids">
+      <nodeOperatorMethod value="stellarFeedbackSpheroids" iterable="no">
 	<stellarFeedbackOutflowsMethod value="rateLimit">
           <timescaleOutflowFractionalMinimum value="0.001"/>
           <stellarFeedbackOutflowsMethod value="powerLaw">
@@ -760,7 +770,7 @@
           </stellarFeedbackOutflowsMethod>
 	</stellarFeedbackOutflowsMethod>
       </nodeOperatorMethod>
-      <nodeOperatorMethod value="ramPressureMassLossSpheroids"/>
+      <nodeOperatorMethod value="ramPressureMassLossSpheroids" iterable="no"/>
     </nodeOperatorMethod>
     <ramPressureStrippingMethod value="simpleSpherical"/>
   </parameters>
@@ -770,6 +780,11 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <nodeOperatorMethod value="multi">
+      <!-- Halo spins -->
+      <nodeOperatorMethod value="haloSpinRandom" iterable="no">
+	<factorReset value="2.0"/>
+      </nodeOperatorMethod>
+      <!-- Star formation -->
       <nodeOperatorMethod value="starFormationDisks" iterable="no"/>
       <nodeOperatorMethod value="starFormationSpheroids" iterable="no"/>
       <!--Stellar feedback outflows-->
@@ -800,6 +815,11 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <nodeOperatorMethod value="multi">
+      <!-- Halo spins -->
+      <nodeOperatorMethod value="haloSpinRandom" iterable="no">
+	<factorReset value="2.0"/>
+      </nodeOperatorMethod>
+      <!-- Star formation -->
       <nodeOperatorMethod value="starFormationDisks" iterable="no"/>
       <nodeOperatorMethod value="starFormationSpheroids" iterable="no"/>
       <!--Stellar feedback outflows-->
@@ -954,16 +974,19 @@
     <spheroidMassDistribution value="hernquist">
       <dimensionless value="true"/>
     </spheroidMassDistribution>
-    <treeNodeMethodSpin value="random"/>
+    <treeNodeMethodSpin value="scalar"/>
     <nodeOperatorMethod value="multi" >
-      <nodeOperatorMethod value="satelliteOrbit"                   />
-      <nodeOperatorMethod value="satelliteDynamicalFriction"       />
-      <nodeOperatorMethod value="satelliteTidalMassLoss"           />
-      <nodeOperatorMethod value="satelliteTidalHeating"            />
-      <nodeOperatorMethod value="satelliteMergingRadiusTrigger"     >
+      <nodeOperatorMethod value="haloSpinRandom" iterable="no">
+	<factorReset value="2.0"/>
+      </nodeOperatorMethod>
+      <nodeOperatorMethod value="satelliteOrbit"                    iterable="no"/>
+      <nodeOperatorMethod value="satelliteDynamicalFriction"        iterable="no"/>
+      <nodeOperatorMethod value="satelliteTidalMassLoss"            iterable="no"/>
+      <nodeOperatorMethod value="satelliteTidalHeating"             iterable="no"/>
+      <nodeOperatorMethod value="satelliteMergingRadiusTrigger"     iterable="no" >
 	<radiusVirialFraction      value="0.01"/>
       </nodeOperatorMethod>
-      <nodeOperatorMethod value="satelliteDestructionMassThreshold" >
+      <nodeOperatorMethod value="satelliteDestructionMassThreshold" iterable="no" >
 	<massDestruction           value="0.00"/>
 	<massDestructionFractional value="0.01"/>
       </nodeOperatorMethod>
@@ -1027,7 +1050,6 @@
       <alpha value="2.509"/>
       <lambda0 value="0.04326"/>
     </haloSpinDistributionMethod>
-    <randomSpinResetMassFactor value="2.0"/>
     <accretionHaloMethod value="simple">
       <redshiftReionization value="10.5"/>
       <velocitySuppressionReionization value="35.0"/>
@@ -1140,7 +1162,7 @@
     <treeNodeMethodSatellite value="standard"/>
     <treeNodeMethodSpheroid value="null"/>
     <treeNodeMethodSpin value="null"/>
-    <verbosityLevel value="1"/>
+    <verbosityLevel value="standard"/>
   </parameters>
 
   <!-- Merger tree regridding -->
@@ -1180,7 +1202,7 @@
     <treeNodeMethodSatellite value="standard"/>
     <treeNodeMethodSpheroid value="null"/>
     <treeNodeMethodSpin value="null"/>
-    <verbosityLevel value="1"/>
+    <verbosityLevel value="standard"/>
   </parameters>
 
   <!-- Merger tree conditional mass function -->
@@ -1227,7 +1249,7 @@
     <treeNodeMethodSatellite value="standard"/>
     <treeNodeMethodSpheroid value="null"/>
     <treeNodeMethodSpin value="null"/>
-    <verbosityLevel value="1"/>
+    <verbosityLevel value="standard"/>
   </parameters>
 
   <!-- Merger tree information content -->
@@ -1263,7 +1285,7 @@
     <treeNodeMethodSatellite value="standard"/>
     <treeNodeMethodSpheroid value="null"/>
     <treeNodeMethodSpin value="null"/>
-    <verbosityLevel value="1"/>
+    <verbosityLevel value="standard"/>
   </parameters>
 
   <!-- Merger tree profiler -->
@@ -1302,7 +1324,7 @@
     <treeNodeMethodSatellite value="standard"/>
     <treeNodeMethodSpheroid value="null"/>
     <treeNodeMethodSpin value="null"/>
-    <verbosityLevel value="1"/>
+    <verbosityLevel value="standard"/>
   </parameters>
 
   <!-- Merger tree prune by mass -->
@@ -1340,7 +1362,7 @@
     <treeNodeMethodSatellite value="standard"/>
     <treeNodeMethodSpheroid value="null"/>
     <treeNodeMethodSpin value="null"/>
-    <verbosityLevel value="1"/>
+    <verbosityLevel value="standard"/>
   </parameters>
 
   <!-- Merger tree prune by hierarchy -->
@@ -1378,7 +1400,7 @@
     <treeNodeMethodSatellite value="standard"/>
     <treeNodeMethodSpheroid value="null"/>
     <treeNodeMethodSpin value="null"/>
-    <verbosityLevel value="1"/>
+    <verbosityLevel value="standard"/>
   </parameters>
   
   <!-- Merger tree prune by time -->
@@ -1416,7 +1438,7 @@
     <treeNodeMethodSatellite value="standard"/>
     <treeNodeMethodSpheroid value="null"/>
     <treeNodeMethodSpin value="null"/>
-    <verbosityLevel value="1"/>
+    <verbosityLevel value="standard"/>
   </parameters>
   
   <!-- Merger tree particulate -->
@@ -1459,7 +1481,7 @@
     <treeNodeMethodSatellite value="standard"/>
     <treeNodeMethodSpheroid value="null"/>
     <treeNodeMethodSpin value="null"/>
-    <verbosityLevel value="1"/>
+    <verbosityLevel value="standard"/>
   </parameters>
   
   <!-- Merger tree dump-to-GraphViz -->
@@ -1497,7 +1519,7 @@
     <treeNodeMethodSatellite value="standard"/>
     <treeNodeMethodSpheroid value="null"/>
     <treeNodeMethodSpin value="null"/>
-    <verbosityLevel value="1"/>
+    <verbosityLevel value="standard"/>
   </parameters>
   
   <!-- Merger tree perturb masses -->
@@ -1548,7 +1570,7 @@
     <treeNodeMethodSatellite value="standard"/>
     <treeNodeMethodSpheroid value="null"/>
     <treeNodeMethodSpin value="null"/>
-    <verbosityLevel value="1"/>
+    <verbosityLevel value="standard"/>
   </parameters>
   
   <!-- Merger tree monotonize mass growth -->
@@ -1595,7 +1617,7 @@
     <treeNodeMethodSatellite value="standard"/>
     <treeNodeMethodSpheroid value="null"/>
     <treeNodeMethodSpin value="null"/>
-    <verbosityLevel value="1"/>
+    <verbosityLevel value="standard"/>
   </parameters>
   
   <!-- Merger tree output root masses -->
@@ -1645,7 +1667,7 @@
     <treeNodeMethodSatellite value="standard"/>
     <treeNodeMethodSpheroid value="null"/>
     <treeNodeMethodSpin value="null"/>
-    <verbosityLevel value="1"/>
+    <verbosityLevel value="standard"/>
   </parameters>
   
   <!-- WDM model -->
@@ -1800,7 +1822,7 @@
     <redshifts value="0.0"/>
   </outputTimesMethod>
 
-  <verbosityLevel value="1"/>
+  <verbosityLevel value="standard"/>
   </parameters>
 
   <!-- Power spectrum calculation -->

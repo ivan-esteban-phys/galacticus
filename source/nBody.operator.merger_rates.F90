@@ -48,8 +48,8 @@ contains
 
   function mergerRatesConstructorParameters(parameters) result (self)
     !% Constructor for the {\normalfont \ttfamily mergerRates} N-body operator class which takes a parameter set as input.
-    use :: Input_Parameters  , only : inputParameters
     use :: ISO_Varying_String, only : operator(/=)
+    use :: Input_Parameters  , only : inputParameters
     implicit none
     type            (nbodyOperatorMergerRates)                :: self
     type            (inputParameters         ), intent(inout) :: parameters
@@ -64,60 +64,44 @@ contains
     !#   <name>indexSnapshot</name>
     !#   <source>parameters</source>
     !#   <description>The snapshot index for which to compute the merger rate.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massMinimum</name>
     !#   <source>parameters</source>
     !#   <description>The minimum mass (of the secondary halo) for which to accumulate merging statistics.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massMaximum</name>
     !#   <source>parameters</source>
     !#   <description>The maximum mass (of the secondary halo) for which to accumulate merging statistics.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massHostMinimum</name>
     !#   <source>parameters</source>
     !#   <description>The minimum mass (of the primary halo) for which to accumulate merging statistics.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massHostMaximum</name>
     !#   <source>parameters</source>
     !#   <description>The maximum mass (of the primary halo) for which to accumulate merging statistics.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>missingHostIsFatal</name>
     !#   <source>parameters</source>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>If true, missing host halos are cause for a fatal error. Otherwise they are ignored.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>alwaysIsolatedOnly</name>
     !#   <source>parameters</source>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>If true, only mergers of halos which have been always isolated are considered. Otherwise, all halos are considered.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>suffix</name>
     !#   <source>parameters</source>
     !#   <defaultValue>var_str('')</defaultValue>
     !#   <description>A suffix to append to the output merger rate attribute. Useful if you want to write output multiple merger rates.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=nbodyOperatorMergerRates(indexSnapshot,massMinimum,massMaximum,massHostMinimum,massHostMaximum,missingHostIsFatal,alwaysIsolatedOnly,suffix,cosmologyFunctions_)
@@ -152,16 +136,16 @@ contains
   
   subroutine mergerRatesOperate(self,simulations)
     !% Compute the merger rate at a given snapshot.
-    !$ use :: OMP_Lib, only : OMP_Get_Thread_Num
-    use    :: Arrays_Search     , only : searchIndexed
-    use    :: Galacticus_Display, only : Galacticus_Display_Indent , Galacticus_Display_Unindent, Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, &
-         &                               Galacticus_Display_Message, verbosityStandard
-    use    :: Galacticus_Error  , only : Galacticus_Error_Report
-    use    :: Sorting           , only : sortIndex
-    use    :: IO_HDF5           , only : hdf5Access
+    use    :: Arrays_Search   , only : searchIndexed
+    use    :: Display         , only : displayCounter         , displayCounterClear   , displayIndent, displayMessage, &
+          &                            displayUnindent        , verbosityLevelStandard
+    use    :: Galacticus_Error, only : Galacticus_Error_Report
+    use    :: IO_HDF5         , only : hdf5Access
 #ifdef USEMPI
-    use    :: MPI_Utilities     , only : mpiSelf
+    use    :: MPI_Utilities   , only : mpiSelf
 #endif
+    !$ use :: OMP_Lib         , only : OMP_Get_Thread_Num
+    use    :: Sorting         , only : sortIndex
     implicit none
     class           (nbodyOperatorMergerRates), intent(inout)               :: self
     type            (nBodyData               ), intent(inout), dimension(:) :: simulations
@@ -184,7 +168,7 @@ contains
 #ifdef USEMPI
     if (mpiSelf%isMaster()) then
 #endif
-    call Galacticus_Display_Indent('compute merger rates',verbosityStandard)
+    call displayIndent('compute merger rates',verbosityLevelStandard)
 #ifdef USEMPI
     end if
 #endif
@@ -192,7 +176,7 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
-       call Galacticus_Display_Message(var_str('simulation "')//simulations(iSimulation)%label//'"',verbosityStandard)
+       call displayMessage(var_str('simulation "')//simulations(iSimulation)%label//'"',verbosityLevelStandard)
 #ifdef USEMPI
        end if
 #endif
@@ -222,7 +206,7 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
-          call Galacticus_Display_Counter(0,.true.)
+          call displayCounter(0,.true.)
 #ifdef USEMPI
        end if
 #endif
@@ -305,7 +289,7 @@ contains
 #ifdef USEMPI
           if (mpiSelf%isMaster()) then
 #endif
-             call Galacticus_Display_Counter(int(100.0d0*dble(i)/dble(size(particleID))),verbosity=verbosityStandard,isNew=i == 1_c_size_t)
+             call displayCounter(int(100.0d0*dble(i)/dble(size(particleID))),verbosity=verbosityLevelStandard,isNew=i == 1_c_size_t)
 #ifdef USEMPI
           end if
 #endif
@@ -315,7 +299,7 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
-          call Galacticus_Display_Counter_Clear()
+          call displayCounterClear()
 #ifdef USEMPI
        end if
 #endif
@@ -379,7 +363,7 @@ contains
 #ifdef USEMPI
     if (mpiSelf%isMaster()) then
 #endif
-       call Galacticus_Display_Unindent('done',verbosityStandard)
+       call displayUnindent('done',verbosityLevelStandard)
 #ifdef USEMPI
     end if
 #endif

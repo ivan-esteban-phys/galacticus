@@ -49,8 +49,7 @@ module Node_Component_Black_Hole_Simple
   !#     <name>massSeed</name>
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
-  !#     <getFunction>Node_Component_Black_Hole_Simple_Seed_Mass</getFunction>
+  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" isDeferred="get" />
   !#   </property>
   !#  </properties>
   !#  <bindings>
@@ -92,8 +91,15 @@ contains
     type(inputParameters             ), intent(inout) :: parameters_
     type(nodeComponentBlackHoleSimple)                :: blackHoleSimple
 
-    ! Get the black hole seed mass.
-    blackHoleSeedMass=blackHoleSimple%massSeed()
+    ! Bind deferred functions.
+    call blackHoleSimple%massSeedFunction(Node_Component_Black_Hole_Simple_Seed_Mass)
+    ! Get the seed mass
+    !# <inputParameter>
+    !#   <name>blackHoleSeedMass</name>
+    !#   <source>parameters_</source>
+    !#   <defaultValue>100.0d0</defaultValue>
+    !#   <description>The mass of the seed black hole placed at the center of each newly formed galaxy.</description>
+    !# </inputParameter>
     ! Get accretion rate enhancement factors.
     !# <inputParameter>
     !#   <name>blackHoleToSpheroidStellarGrowthRatio</name>
@@ -403,7 +409,7 @@ contains
     use :: Multi_Counters  , only : multiCounter
     implicit none
     double precision                        , intent(in   )          :: time
-    type            (treeNode              ), intent(inout), pointer :: node
+    type            (treeNode              ), intent(inout)          :: node
     integer                                 , intent(inout)          :: doubleBufferCount          , doubleProperty, integerBufferCount, &
          &                                                              integerProperty
     integer         (kind=kind_int8        ), intent(inout)          :: integerBuffer         (:,:)
@@ -447,5 +453,16 @@ contains
     end select
     return
   end function Node_Component_Black_Hole_Simple_Matches
+
+  double precision function Node_Component_Black_Hole_Simple_Seed_Mass(self)
+    !% Return the seed mass for simple black holes.
+    use :: Galacticus_Nodes, only : nodeComponentBlackHoleSimple
+    implicit none
+    class(nodeComponentBlackHoleSimple), intent(inout) :: self
+    !$GLC attributes unused :: self
+    
+    Node_Component_Black_Hole_Simple_Seed_Mass=blackHoleSeedMass
+    return
+  end function Node_Component_Black_Hole_Simple_Seed_Mass
 
 end module Node_Component_Black_Hole_Simple

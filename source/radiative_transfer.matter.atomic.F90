@@ -94,10 +94,10 @@
   type, public :: element
      !% Type used to store elemental states.
      double precision                              :: densityNumber
-     double precision, dimension(:,:), allocatable :: photoIonizationRateHistory , photoHeatingRateHistory , &
+     double precision, dimension(:,:), allocatable :: photoIonizationRateHistory    , photoHeatingRateHistory , &
           &                                           ionizationStateFractionHistory
-     double precision, dimension(:  ), allocatable :: photoIonizationRate        , photoHeatingRate        , &
-          &                                           photoIonizationRatePrevious, photoHeatingRatePrevious, &
+     double precision, dimension(:  ), allocatable :: photoIonizationRate           , photoHeatingRate        , &
+          &                                           photoIonizationRatePrevious   , photoHeatingRatePrevious, &
           &                                           ionizationStateFraction
   end type element
   
@@ -118,14 +118,14 @@
 
   ! Tolerance parameters.
   double precision                                         , parameter                   :: atomicIonizationStateFractionToleranceAbsolute=1.0d-12, atomicIonizationStateFractionToleranceRelative=1.0d-2
-  double precision                                         , parameter                   :: temperatureToleranceRelative                  =1.0d-02, temperatureToleranceAbsolute                  =1.0d+0
+  double precision                                         , parameter                   :: temperatureToleranceRelative                  =1.0d-03, temperatureToleranceAbsolute                  =1.0d+0
   double precision                                         , parameter                   :: temperatureMaximum                            =1.0d+10
 
 contains
 
   function atomicConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily atomic} radiative transfer matter class which takes a parameter set as input.
-    use :: Input_Parameters                , only : inputParameters , inputParameter
+    use :: Input_Parameters                , only : inputParameter  , inputParameters
     use :: Numerical_Constants_Astronomical, only : metallicitySolar
     implicit none
     type            (radiativeTransferMatterAtomic               )                             :: self
@@ -223,14 +223,14 @@ contains
 
   function atomicConstructorInternal(abundancePattern,metallicity,elements,iterationAverageCount,temperatureMinimum,outputRates,outputAbsorptionCoefficients,convergencePercentile,massDistribution_,atomicCrossSectionIonizationPhoto_,atomicRecombinationRateRadiative_,atomicRecombinationRateRadiativeCooling_,atomicIonizationRateCollisional_,atomicRecombinationRateDielectronic_,atomicIonizationPotential_,atomicExcitationRateCollisional_,gauntFactor_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily atomic} radiative transfer matter class.
-    use :: Abundances_Structure            , only : abundances               , metallicityTypeLinearByMassSolar, adjustElementsReset          , Abundances_Index_From_Name
-    use :: Atomic_Data                     , only : Abundance_Pattern_Lookup , Atomic_Abundance                , Atomic_Mass                  , Atomic_Number
+    use :: Abundances_Structure            , only : Abundances_Index_From_Name, abundances                   , adjustElementsReset          , metallicityTypeLinearByMassSolar
+    use :: Atomic_Data                     , only : Abundance_Pattern_Lookup  , Atomic_Abundance             , Atomic_Mass                  , Atomic_Number
     use :: ISO_Varying_String              , only : char
-    use :: Numerical_Constants_Astronomical, only : massSolar                , megaParsec                      , metallicitySolar
+    use :: Numerical_Constants_Astronomical, only : massSolar                 , megaParsec                   , metallicitySolar
     use :: Numerical_Constants_Atomic      , only : atomicMassUnit
     use :: Numerical_Constants_Prefixes    , only : centi
-    use :: Root_Finder                     , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative   , rangeExpandSignExpectPositive
-    use :: String_Handling                 , only : String_Count_Words       , String_Split_Words
+    use :: Root_Finder                     , only : rangeExpandMultiplicative , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
+    use :: String_Handling                 , only : String_Count_Words        , String_Split_Words
     implicit none
     type            (radiativeTransferMatterAtomic               )                              :: self
     integer                                                       , intent(in   )               :: iterationAverageCount
@@ -651,9 +651,9 @@ contains
 
   double precision function atomicStateThermalBalance(temperature)
     !% Root function used in finding the equilibrium temperature for thermal balance.
-    use :: Numerical_Constants_Physical, only : boltzmannsConstant, speedLight, electronMass, fineStructure, &
-         &                                      electronRadius
     use :: Numerical_Constants_Math    , only : Pi
+    use :: Numerical_Constants_Physical, only : boltzmannsConstant, electronMass, electronRadius, fineStructure, &
+          &                                     speedLight
     use :: Numerical_Constants_Prefixes, only : centi
     implicit none
     double precision, intent(in   ) :: temperature
@@ -720,9 +720,9 @@ contains
   
   subroutine atomicStateSolve(self,properties,status)
     !% Solve for the state of the matter.
-    use :: Atomic_Rates_Recombination_Radiative, only : recombinationCaseA       , recombinationCaseB
-    use :: Galacticus_Display                  , only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Display_Message, verbosityStandard
-    use :: Galacticus_Error                    , only : Galacticus_Error_Report  , errorStatusSuccess         , errorStatusFail           , errorStatusOutOfRange
+    use :: Atomic_Rates_Recombination_Radiative, only : recombinationCaseA     , recombinationCaseB
+    use :: Display                             , only : displayIndent          , displayMessage    , displayUnindent      , verbosityLevelStandard
+    use :: Galacticus_Error                    , only : Galacticus_Error_Report, errorStatusFail   , errorStatusOutOfRange, errorStatusSuccess
     use :: Numerical_Roman_Numerals            , only : Roman_Numerals
     implicit none
     class           (radiativeTransferMatterAtomic    ), intent(inout) , target      :: self
@@ -961,7 +961,12 @@ contains
              ! Solve for temperature - updating only if we find a solution in range.
              temperatureEquilibrium=self%finder%find(rootGuess=properties%temperature,status=statusTemperature)
              if (statusTemperature == errorStatusSuccess) then
-                properties%temperature=temperatureEquilibrium
+                if (countIteration > 1 .and. abs(log10(properties%temperature/temperatureEquilibrium)) > 3.0d0) then
+                   ! If a large change in temperature occurs, geometrically bisect with the previous temperature.
+                   properties%temperature=sqrt(temperatureEquilibrium*properties%temperature)
+                else
+                   properties%temperature=     temperatureEquilibrium
+                end if
              else
                 ! Temperature solution failed. Attempt to adjust the temperature slightly to allow us to find a solution on
                 ! subsequent iterations.
@@ -1016,30 +1021,30 @@ contains
                 return
              else
                 ! No solution was found - report on the state of this domain cell.
-                call Galacticus_Display_Indent('failed domain cell state report',verbosityStandard)
+                call displayIndent('failed domain cell state report',verbosityLevelStandard)
                 write (message,'(a,e23.16         )') 'volume                                    = ',properties%volume
-                call Galacticus_Display_Message(message,verbosityStandard)
+                call displayMessage(message,verbosityLevelStandard)
                 write (message,'(a,e23.16         )') 'initial temperature                       = ',temperatureReference
-                call Galacticus_Display_Message(message,verbosityStandard)
+                call displayMessage(message,verbosityLevelStandard)
                 do i=1,self%countElements
-                   call Galacticus_Display_Indent('element: '//trim(adjustl(self%elements(i))),verbosityStandard)
+                   call displayIndent('element: '//trim(adjustl(self%elements(i))),verbosityLevelStandard)
                    write (message,'(a,e23.16         )') 'density                                   = ',properties%elements(i)%densityNumber
-                   call Galacticus_Display_Message(message,verbosityStandard)
+                   call displayMessage(message,verbosityLevelStandard)
                    do j=0,self%elementAtomicNumbers(i)
-                      call Galacticus_Display_Indent('ion: '//trim(adjustl(self%elements(i)))//Roman_Numerals(j+1),verbosityStandard)
+                      call displayIndent('ion: '//trim(adjustl(self%elements(i)))//Roman_Numerals(j+1),verbosityLevelStandard)
                       if (j < self%elementAtomicNumbers(i)) then
                          write (message,'(a,e23.16,a,e23.16)') 'photoionization rate (current : previous) = ',properties%elements         (i)%photoIonizationRate    (j),' : ',properties%elements(i)%photoIonizationRatePrevious(j)
-                         call Galacticus_Display_Message(message,verbosityStandard)
+                         call displayMessage(message,verbosityLevelStandard)
                          write (message,'(a,e23.16,a,e23.16)') 'photoheating rate    (current : previous) = ',properties%elements         (i)%photoHeatingRate       (j),' : ',properties%elements(i)%photoHeatingRatePrevious   (j)
-                         call Galacticus_Display_Message(message,verbosityStandard)
+                         call displayMessage(message,verbosityLevelStandard)
                       end if
                       write    (message,'(a,e23.16,a,e23.16)') 'initial ionization state                  = ',           elementsReference(i)%ionizationStateFraction(j)
-                      call Galacticus_Display_Message(message,verbosityStandard)
-                      call Galacticus_Display_Unindent('done',verbosityStandard)
+                      call displayMessage(message,verbosityLevelStandard)
+                      call displayUnindent('done',verbosityLevelStandard)
                    end do
-                   call Galacticus_Display_Unindent('done',verbosityStandard)
+                   call displayUnindent('done',verbosityLevelStandard)
                 end do
-                call Galacticus_Display_Unindent('done',verbosityStandard)
+                call displayUnindent('done',verbosityLevelStandard)
 #ifdef RADTRANSDEBUG
                 call debugReport()                
 #endif

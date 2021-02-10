@@ -5,7 +5,7 @@
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
 
-  <verbosityLevel value="1"/>
+  <verbosityLevel value="standard"/>
 
   <taskMethod value="posteriorSample">
     <initializeNodeClassHierarchy value="false"/>
@@ -660,7 +660,7 @@
   <treeNodeMethodPosition           value="traceDarkMatter"/>
   <treeNodeMethodSatellite          value="standard"       />
   <treeNodeMethodSpheroid           value="standard"       />
-  <treeNodeMethodSpin               value="random"         />
+  <treeNodeMethodSpin               value="scalar"         />
   <treeNodeMethodAgeStatistics      value="null"           />
   <treeNodeMethodDynamicsStatistics value="null"           />
   <treeNodeMethodFormationTime      value="null"           />

@@ -26,8 +26,9 @@
      !% Implementation of a merger tree outputter which does no output.
      private
    contains
-     procedure :: output   => nullOutput
-     procedure :: finalize => nullFinalize
+     procedure :: outputTree => nullOutputTree
+     procedure :: outputNode => nullOutputNode
+     procedure :: finalize   => nullFinalize
   end type mergerTreeOutputterNull
 
   interface mergerTreeOutputterNull
@@ -49,18 +50,28 @@ contains
     return
   end function nullConstructorParameters
 
-  subroutine nullOutput(self,tree,indexOutput,time,isLastOutput)
+  subroutine nullOutputTree(self,tree,indexOutput,time)
     !% Perform no output.
     implicit none
-    class           (mergerTreeOutputterNull), intent(inout)           :: self
-    type            (mergerTree             ), intent(inout), target   :: tree
-    integer         (c_size_t               ), intent(in   )           :: indexOutput
-    double precision                         , intent(in   )           :: time
-    logical                                  , intent(in   ), optional :: isLastOutput
-    !$GLC attributes unused :: self, tree, indexOutput, time, isLastOutput
+    class           (mergerTreeOutputterNull), intent(inout)         :: self
+    type            (mergerTree             ), intent(inout), target :: tree
+    integer         (c_size_t               ), intent(in   )         :: indexOutput
+    double precision                         , intent(in   )         :: time
+    !$GLC attributes unused :: self, tree, indexOutput, time
 
     return
-  end subroutine nullOutput
+  end subroutine nullOutputTree
+
+  subroutine nullOutputNode(self,node,indexOutput)
+    !% Perform no output.
+    implicit none
+    class           (mergerTreeOutputterNull), intent(inout) :: self
+    type            (treeNode               ), intent(inout) :: node
+    integer         (c_size_t               ), intent(in   ) :: indexOutput
+    !$GLC attributes unused :: self, node, indexOutput
+
+    return
+  end subroutine nullOutputNode
 
   subroutine nullFinalize(self)
     !% Finalize merger tree output.

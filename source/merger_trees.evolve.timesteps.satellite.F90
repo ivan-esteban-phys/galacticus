@@ -111,13 +111,14 @@ contains
     return
   end subroutine satelliteDestructor
 
-  double precision function satelliteTimeEvolveTo(self,node,task,taskSelf,report,lockNode,lockType)
+  double precision function satelliteTimeEvolveTo(self,timeEnd,node,task,taskSelf,report,lockNode,lockType)
     !% Determine a suitable timestep for {\normalfont \ttfamily node} such that it does not exceed the time of the next satellite merger.
     use :: Evolve_To_Time_Reports, only : Evolve_To_Time_Report
     use :: Galacticus_Nodes      , only : nodeComponentBasic   , nodeComponentSatellite, treeNode
     use :: ISO_Varying_String    , only : varying_string
     implicit none
     class           (mergerTreeEvolveTimestepSatellite), intent(inout), target            :: self
+    double precision                                   , intent(in   )                    :: timeEnd
     type            (treeNode                         ), intent(inout), target            :: node
     procedure       (timestepTask                     ), intent(  out), pointer           :: task
     class           (*                                ), intent(  out), pointer           :: taskSelf
@@ -129,6 +130,7 @@ contains
     class           (nodeComponentSatellite           )               , pointer           :: satellite
     double precision                                                                      :: mergeTargetTimeMinimum, mergeTargetTimeOffsetMaximum, &
          &                                                                                   timeUntilMerging
+    !$GLC attributes unused :: timeEnd
 
     ! By default set a huge timestep so that this class has no effect.
     satelliteTimeEvolveTo           =  huge(0.0d0)
@@ -182,7 +184,7 @@ contains
 
   subroutine satelliteMergerProcess(self,tree,node,deadlockStatus)
     !% Process a satellite node which has undergone a merger with its host node.
-    use :: Galacticus_Display                 , only : Galacticus_Display_Message   , Galacticus_Verbosity_Level, verbosityInfo
+    use :: Display                            , only : displayMessage               , displayVerbosity, verbosityLevelInfo
     use :: Galacticus_Error                   , only : Galacticus_Error_Report
     use :: ISO_Varying_String                 , only : varying_string
     use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked
@@ -197,10 +199,10 @@ contains
     !$GLC attributes unused :: tree
 
     ! Report if necessary.
-    if (Galacticus_Verbosity_Level() >= verbosityInfo) then
+    if (displayVerbosity() >= verbosityLevelInfo) then
        message='Satellite node ['
        message=message//node%index()//'] is being merged'
-       call Galacticus_Display_Message(message)
+       call displayMessage(message)
     end if
     ! Perform any node operations on the galaxy merger, and then trigger the satellite merger event.
     select type (self)

@@ -33,12 +33,11 @@ module Satellite_Tidal_Stripping
   !#   Class providing models of tidal stripping for satellites.
   !#  </description>
   !#  <default>zentner2005</default>
-  !#  <calculationReset>yes</calculationReset>
   !#  <method name="massLossRate" >
   !#   <description>Returns the rate of tidal mass loss for {\normalfont \ttfamily node} (in units of $M_\odot$/Gyr).</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout), target :: node</argument>
+  !#   <argument>type(treeNode), intent(inout) :: node</argument>
   !#  </method>
   !# </functionClass>
 

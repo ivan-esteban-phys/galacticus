@@ -64,9 +64,10 @@
      double precision                           , allocatable, dimension(:) :: wavenumber
      type            (hdf5Object               )                            :: outputGroup
    contains
-     final     ::             haloFourierProfilesDestructor
-     procedure :: output   => haloFourierProfilesOutput
-     procedure :: finalize => haloFourierProfilesFinalize
+     final     ::               haloFourierProfilesDestructor
+     procedure :: outputTree => haloFourierProfilesOutputTree
+     procedure :: outputNode => haloFourierProfilesOutputNode
+     procedure :: finalize   => haloFourierProfilesFinalize
   end type mergerTreeOutputterHaloFourierProfiles
 
   interface mergerTreeOutputterHaloFourierProfiles
@@ -161,7 +162,7 @@ contains
     return
   end subroutine haloFourierProfilesFinalize
   
-  subroutine haloFourierProfilesOutput(self,tree,indexOutput,time,isLastOutput)
+  subroutine haloFourierProfilesOutputTree(self,tree,indexOutput,time)
     !% Write properties of nodes in {\normalfont \ttfamily tree} to the \glc\ output file.
     use    :: Galacticus_HDF5                 , only : galacticusOutputFile
     use    :: Galacticus_Nodes                , only : treeNode                , nodeComponentBasic
@@ -175,7 +176,6 @@ contains
     type            (mergerTree                            ), intent(inout), target       :: tree
     integer         (c_size_t                              ), intent(in   )               :: indexOutput
     double precision                                        , intent(in   )               :: time
-    logical                                                 , intent(in   ), optional     :: isLastOutput
     type            (treeNode                              )               , pointer      :: node
     class           (nodeComponentBasic                    )               , pointer      :: basic
     double precision                                        , allocatable  , dimension(:) :: fourierProfile
@@ -185,7 +185,7 @@ contains
     integer         (c_size_t                              )                              :: treeIndexPrevious
     double precision                                                                      :: expansionFactor
     integer                                                                               :: i
-    !$GLC attributes unused :: time, isLastOutput
+    !$GLC attributes unused :: time
     
     allocate(fourierProfile(self%wavenumberCount))
     !$ call hdf5Access%set  ()
@@ -210,7 +210,7 @@ contains
        end if
        basic           => node%basic                              (            )
        expansionFactor =  self%cosmologyFunctions_%expansionFactor(basic%time())
-       ! Construct profile. (Our wavenumbers are comoving, so we must convert them to physical coordinates before passing them to
+      ! Construct profile. (Our wavenumbers are comoving, so we must convert them to physical coordinates before passing them to
        ! the dark matter profile k-space routine.)
        do i=1,self%waveNumberCount
           fourierProfile(i)=self%darkMatterProfileDMO_%kSpace(node,self%wavenumber(i)/expansionFactor)
@@ -224,5 +224,17 @@ contains
     call                         outputGroup%close()
     !$ call hdf5Access%unset()
     return
-  end subroutine haloFourierProfilesOutput
+  end subroutine haloFourierProfilesOutputTree
 
+  subroutine haloFourierProfilesOutputNode(self,node,indexOutput)
+    !% Perform no output.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    class  (mergerTreeOutputterHaloFourierProfiles), intent(inout) :: self
+    type   (treeNode                              ), intent(inout) :: node
+    integer(c_size_t                              ), intent(in   ) :: indexOutput
+    !$GLC attributes unused :: self, node, indexOutput
+
+    call Galacticus_Error_Report('output of single nodes is not supported'//{introspection:location})
+    return
+  end subroutine haloFourierProfilesOutputNode

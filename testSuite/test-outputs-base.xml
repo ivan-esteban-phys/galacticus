@@ -10,6 +10,11 @@
 
   <!-- Node evolution and physics -->
   <nodeOperatorMethod value="multi">
+    <!-- Halo spins -->
+    <nodeOperatorMethod value="haloSpinRandom">
+      <factorReset value="2.0"/>
+    </nodeOperatorMethod>
+    <!-- Star formation -->
     <nodeOperatorMethod value="starFormationDisks"/>
     <nodeOperatorMethod value="starFormationSpheroids"/>
     <!--Stellar feedback outflows-->
@@ -30,6 +35,13 @@
           <exponent value="3.5"/>
         </stellarFeedbackOutflowsMethod>
       </stellarFeedbackOutflowsMethod>
+    </nodeOperatorMethod>
+    <!-- Bar instability in galactic disks -->
+    <nodeOperatorMethod value="barInstability">
+      <galacticDynamicsBarInstabilityMethod value="efstathiou1982">
+	<stabilityThresholdGaseous value="0.7"/>
+	<stabilityThresholdStellar value="1.1"/>
+      </galacticDynamicsBarInstabilityMethod>
     </nodeOperatorMethod>
   </nodeOperatorMethod>
 

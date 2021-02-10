@@ -5,7 +5,7 @@
   <version>0.9.4</version>
 
   <!-- Verbosity -->
-  <verbosityLevel value="2"/>
+  <verbosityLevel value="working"/>
 
   <!-- Component selection -->
   <treeNodeMethodBasic value="standard"/>
@@ -15,7 +15,7 @@
   <treeNodeMethodDisk value="null"/>
   <treeNodeMethodSatellite value="standard"/>
   <treeNodeMethodSpheroid value="null"/>
-  <treeNodeMethodSpin value="random"/>
+  <treeNodeMethodSpin value="scalar"/>
   <spheroidMassDistribution value="hernquist"/>
   <satelliteDynamicalFrictionMethod value="zero"/>
   <satelliteTidalStrippingMethod value="zero"/>
@@ -196,26 +196,12 @@
     <mergerTreeEvolveTimestepMethod value="satellite"/>
   </mergerTreeEvolveTimestepMethod>
 
+  <!-- Node physics -->
+  <nodeOperatorMethod value="haloSpinRandom">
+    <factorReset value="2.0"/>
+  </nodeOperatorMethod>
+
   <!-- Output file -->
   <galacticusOutputFileName value="testSuite/outputs/regressions/cole2000TreeBuilderWDMNodeWellOrdering.hdf5"/>
 
-  <!--Stellar feedback outflows-->
-  <nodeOperatorMethod value="stellarFeedbackDisks">
-    <stellarFeedbackOutflowsMethod value="rateLimit">
-      <timescaleOutflowFractionalMinimum value="0.001"/>
-      <stellarFeedbackOutflowsMethod value="powerLaw">
-        <velocityCharacteristic value="250.0"/>
-        <exponent value="3.5"/>
-      </stellarFeedbackOutflowsMethod>
-    </stellarFeedbackOutflowsMethod>
-  </nodeOperatorMethod>
-  <nodeOperatorMethod value="stellarFeedbackSpheroids">
-    <stellarFeedbackOutflowsMethod value="rateLimit">
-      <timescaleOutflowFractionalMinimum value="0.001"/>
-      <stellarFeedbackOutflowsMethod value="powerLaw">
-        <velocityCharacteristic value="250.0"/>
-        <exponent value="3.5"/>
-      </stellarFeedbackOutflowsMethod>
-    </stellarFeedbackOutflowsMethod>
-  </nodeOperatorMethod>
 </parameters>

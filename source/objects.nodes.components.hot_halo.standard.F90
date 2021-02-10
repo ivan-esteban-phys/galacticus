@@ -1359,7 +1359,6 @@ contains
 
   !# <mergerTreeInitializeTask>
   !#  <unitName>Node_Component_Hot_Halo_Standard_Tree_Initialize</unitName>
-  !#  <after>spin</after>
   !#  <after>darkMatterProfile</after>
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Hot_Halo_Standard_Tree_Initialize(node)
@@ -1726,7 +1725,7 @@ contains
     class(nodeComponentHotHalo), pointer       :: hotHaloParent, hotHalo
     !$GLC attributes unused :: self
     
-    hotHalo => node%hotHalo()
+    hotHalo => node%hotHalo(autoCreate=.true.)
     ! Ensure that it is of specified class.
     select type (hotHalo)
     class is (nodeComponentHotHaloStandard)

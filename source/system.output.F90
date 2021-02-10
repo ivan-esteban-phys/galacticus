@@ -17,14 +17,33 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains custom functions for the random spin component.
+!% Contains a module which interfaces with the system output.
 
-double precision function SpinRandomSpinGrowthRate(self)
-  !% Return the {\normalfont \ttfamily spinGrowthRate} property of the {\normalfont \ttfamily SpinRandom} component.
+! Specify an explicit dependence on the C interface files.
+!: $(BUILDPATH)/isatty.o
+
+module System_Output
+  use, intrinsic :: ISO_C_Binding, only : c_int
   implicit none
-  class(nodeComponentSpinRandom), intent(inout) :: self
-  !$GLC attributes unused :: self
+  private
+  public :: stdOutIsATTY
 
-  SpinRandomSpinGrowthRate=0.0d0
-  return
-end function SpinRandomSpinGrowthRate
+  interface
+     function stdOutIsATTY_() bind(c,name='stdOutIsATTY_')
+       !% Template for a C function that determines if stdout is a TTY.
+       import
+       integer(c_int) :: stdOutIsATTY_
+     end function stdOutIsATTY_
+  end interface
+
+contains
+
+  logical function stdOutIsATTY()
+    !% Return {\normalfont \ttfamily true} if stdout is a {\normalfont \ttfamily TTY}.
+    implicit none
+
+    stdOutIsATTY=stdOutIsATTY_() == 1_c_int
+    return
+  end function stdOutIsATTY
+  
+end module System_Output

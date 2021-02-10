@@ -47,7 +47,7 @@
   </nodePropertyExtractorMethod>
   <mergerTreeOperatorMethod value="massAccretionHistory"/>
   <hotHaloAngularMomentumAlwaysGrows value="true"/>
-  <verbosityLevel value="1"/>
+  <verbosityLevel value="standard"/>
   <nodePromotionIndexShift value="false"/>
   <outputTimesMethod value="list">
     <redshifts value="0.000"/>
@@ -66,6 +66,9 @@
 
   <!-- Node evolution and physics -->
   <nodeOperatorMethod value="multi">
+    <nodeOperatorMethod value="haloSpinRandom">
+      <factorReset value="2.0"/>
+    </nodeOperatorMethod>
     <nodeOperatorMethod value="starFormationDisks"/>
     <nodeOperatorMethod value="starFormationSpheroids"/>
     <!--Stellar feedback outflows-->

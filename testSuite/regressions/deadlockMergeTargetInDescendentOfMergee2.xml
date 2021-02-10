@@ -64,12 +64,17 @@
   <treeNodeMethodPosition value="preset"/>
   <treeNodeMethodSatellite value="preset"/>
   <treeNodeMethodSpheroid value="standard"/>
-  <treeNodeMethodSpin value="preset3D"/>
-  <verbosityLevel value="1"/>
+  <treeNodeMethodSpin value="vector"/>
+  <verbosityLevel value="standard"/>
   <galacticusOutputFileName value="testSuite/outputs/deadlockMergeTargetInDescendentOfMergee2.hdf5"/>
 
   <!-- Node evolution and physics -->
   <nodeOperatorMethod value="multi">
+    <!-- Halo spin -->
+    <nodeOperatorMethod value="haloSpinInterpolate">
+      <factorReset value="2.0"/>
+    </nodeOperatorMethod>
+    <!-- Star formation -->
     <nodeOperatorMethod value="starFormationDisks"/>
     <nodeOperatorMethod value="starFormationSpheroids"/>
     <!--Stellar feedback outflows-->
