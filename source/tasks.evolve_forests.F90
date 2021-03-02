@@ -348,7 +348,7 @@ contains
     class           (nodeComponentBasic           ), pointer                  , save :: basic                                     , basicChild
     type            (evolveForestsBranchList      ), pointer                  , save :: branchList_                               , branchNew                   , &
          &                                                                              branchNext
-    logical                                                                   , save :: branchAccept
+    logical                                                                   , save :: branchAccept                              , treesFinished
     integer         (c_size_t                     )                           , save :: iBranch                                   , i                           , &
          &                                                                              countBranch                               , treeNumber
     integer         (c_size_t                     ), allocatable, dimension(:), save :: rankBranch
@@ -357,12 +357,12 @@ contains
     double precision                                                          , save :: timeSectionForestBegin
     logical                                                                          :: triggerExit                               , triggerFinishUniverse       , &
          &                                                                              disableSingleForestEvolution              , triggerFinishFinal          , &
-         &                                                                              triggerFinish                             , treesFinished
+         &                                                                              triggerFinish
     integer         (c_size_t                     )                                  :: iBranchAcceptedLast                       , treeCount
     integer         (omp_lock_kind                )                                  :: initializationLock
     integer         (kind_int8                    )                                  :: systemClockRate                           , systemClockMaximum
     double precision                                                                 :: evolveToTimeForest
-    !$omp threadprivate(node,basic,basicChild,timeBranchSplit,branchNew,branchNext,i,iBranch,branchAccept,massBranch,timeSectionForestBegin,forestSection,treeNumber)
+    !$omp threadprivate(node,basic,basicChild,timeBranchSplit,branchNew,branchNext,i,iBranch,branchAccept,massBranch,timeSectionForestBegin,forestSection,treeNumber,treesFinished)
 
     ! The following processes merger trees, one at a time, to each successive output time, then dumps their contents to file. It
     ! allows for the possibility of "universal events" - events which require all merger trees to reach the same cosmic time. If
@@ -421,6 +421,7 @@ contains
     !# <deepCopy source="self%mergerTreeConstructor_" destination="evolveForestsMergerTreeConstructor_"/>
     !# <deepCopy source="self%mergerTreeOperator_"    destination="evolveForestsMergerTreeOperator_"   />
     !# <deepCopy source="self%galacticFilter_"        destination="evolveForestsGalacticFilter_"       />
+    !# <deepCopyFinalize variables="evolveForestsMergerTreeEvolver_ evolveForestsMergerTreeOutputter_ evolveForestsMergerTreeInitializor_ evolveForestsMergerTreeConstructor_ evolveForestsMergerTreeOperator_ evolveForestsGalacticFilter_"/>  
     !$omp end critical(evolveForestsDeepCopy)
     ! Call routines to perform initializations which must occur for all threads if run in parallel.
     call Node_Components_Thread_Initialize(self%parameters)

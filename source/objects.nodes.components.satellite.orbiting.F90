@@ -43,7 +43,7 @@ module Node_Component_Satellite_Orbiting
   !#     <type>double</type>
   !#     <rank>1</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-  !#     <output labels="[X,Y,Z]" unitsInSI="megaParsec" comment="Orbital position of the node."/>
+  !#     <output labels="[X,Y,Z]" unitsInSI="megaParsec" comment="Orbital position of the node relative to its immediate host (sub-)halo."/>
   !#     <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
   !#   </property>
   !#   <property>
@@ -51,7 +51,7 @@ module Node_Component_Satellite_Orbiting
   !#     <type>double</type>
   !#     <rank>1</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-  !#     <output labels="[X,Y,Z]" unitsInSI="kilo" comment="Orbital velocity of the node."/>
+  !#     <output labels="[X,Y,Z]" unitsInSI="kilo" comment="Orbital velocity of the node relative to its immediate host (sub-)halo."/>
   !#     <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
   !#   </property>
   !#   <property>
@@ -102,6 +102,14 @@ module Node_Component_Satellite_Orbiting
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output unitsInSI="kilo**2/megaParsec**2" comment="Energy/radius^2 of satellite."/>
+  !#   </property>
+  !#   <property>
+  !#     <name>subsamplingWeight</name>
+  !#     <type>double</type>
+  !#     <rank>0</rank>
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+  !#     <classDefault>1.0d0</classDefault>
+  !#     <output unitsInSI="0.0d0" comment="Weight of satellite in the subsample."/>
   !#   </property>
   !#  </properties>
   !#  <functions>objects.nodes.components.satellite.orbiting.bound_functions.inc</functions>
@@ -192,6 +200,7 @@ contains
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Satellite_Orbiting_Thread_Initialize(parameters_)
     !% Initializes the tree node orbiting satellite module.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
     use :: Input_Parameters, only : inputParameter           , inputParameters
     implicit none
@@ -200,6 +209,8 @@ contains
     if (defaultSatelliteComponent%orbitingIsActive()) then
        !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters_"/>
        !# <objectBuilder class="virialOrbit"         name="virialOrbit_"         source="parameters_"/>
+       ! Check that the virial orbit class supports setting of angular coordinates.
+       if (.not.virialOrbit_%isAngularlyResolved()) call Galacticus_Error_Report('"orbiting" satellite component requires a virialOrbit class which provides angularly-resolved orbits'//{introspection:location})
     end if
     return
   end subroutine Node_Component_Satellite_Orbiting_Thread_Initialize
@@ -225,11 +236,18 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Satellite_Orbiting_Tree_Initialize(node)
     !% Initialize the orbiting satellite component.
-    use :: Galacticus_Nodes, only : treeNode
+    use :: Galacticus_Nodes, only : treeNode, nodeComponentSatellite
     implicit none
-    type(treeNode), pointer, intent(inout) :: node
+    type (treeNode              ), pointer, intent(inout) :: node
+    class(nodeComponentSatellite), pointer                :: satellite
 
-    if (node%isSatellite()) call Node_Component_Satellite_Orbiting_Create(node)
+    if (node%isSatellite()) then
+       satellite => node%satellite()
+       select type (satellite)
+       type is (nodeComponentSatellite)
+          call Node_Component_Satellite_Orbiting_Create(node)
+       end select
+    end if
     return
   end subroutine Node_Component_Satellite_Orbiting_Tree_Initialize
 

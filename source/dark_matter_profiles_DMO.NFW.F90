@@ -69,7 +69,9 @@
           &                                                     enclosingDensityRadiusPrevious         , densityScalePrevious               , &
           &                                                     enclosedMassPrevious                   , enclosingMassRadiusPrevious        , &
           &                                                     massScalePrevious                      , circularVelocityPrevious           , &
-          &                                                     circularVelocityRadiusPrevious
+          &                                                     circularVelocityRadiusPrevious         , radialVelocityDispersionPrevious   , &
+          &                                                     radialVelocityDispersionRadiusPrevious
+     logical                                                 :: velocityDispersionUseSeriesExpansion
    contains
      !# <methods>
      !#   <method description="Reset memoized calculations." method="calculationReset" />
@@ -77,6 +79,7 @@
      !#   <method description="Returns the enclosed mass (in units of the virial mass) in an NFW dark matter profile with given {\normalfont \ttfamily concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius)." method="enclosedMassScaleFree" />
      !#   <method description="Returns the density (in units of the virial mass per cubic scale radius) in an NFW dark matter profile with given {\normalfont \ttfamily concentration} which is enclosed a given radius (in units of the scale radius)." method="densityEnclosedByRadiusScaleFree" />
      !#   <method description="Returns the radial velocity dispersion (in units of the virial velocity) in an NFW dark matter profile with given {\normalfont \ttfamily concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius)." method="radialVelocityDispersionScaleFree" />
+     !#   <method description="Returns the radial velocity dispersion (in units of the virial velocity) in an NFW dark matter profile with given {\normalfont \ttfamily concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius). The analytic solution is approximated by series expansions to achieve an accuracy better than $10^{-5}$." method="radialVelocityDispersionScaleFreeSeriesExpansion" />
      !#   <method description="Tabulates the freefall time vs. freefall radius for NFW halos." method="freefallTabulate" />
      !#   <method description="Compute the freefall time in a scale-free NFW halo." method="freefallTimeScaleFree" />
      !#   <method description="Returns the total angular momentum in an NFW dark matter profile with given {\normalfont \ttfamily concentration}." method="angularMomentumScaleFree" />
@@ -86,38 +89,40 @@
      !#   <method description="Tabulate properties of the NFW halo profile which must be computed numerically." method="tabulate" />
      !#   <method description="Tabulate the density enclosed within a given radius for the NFW profile." method="enclosedDensityTabulate" />
      !# </methods>
-     final     ::                                      nfwDestructor
-     procedure :: autoHook                          => nfwAutoHook
-     procedure :: calculationReset                  => nfwCalculationReset
-     procedure :: density                           => nfwDensity
-     procedure :: densityLogSlope                   => nfwDensityLogSlope
-     procedure :: radialMoment                      => nfwRadialMoment
-     procedure :: enclosedMass                      => nfwEnclosedMass
-     procedure :: radiusEnclosingDensity            => nfwRadiusEnclosingDensity
-     procedure :: radiusEnclosingMass               => nfwRadiusEnclosingMass
-     procedure :: potential                         => nfwPotential
-     procedure :: circularVelocity                  => nfwCircularVelocity
-     procedure :: circularVelocityMaximum           => nfwCircularVelocityMaximum
-     procedure :: radialVelocityDispersion          => nfwRadialVelocityDispersion
-     procedure :: radiusFromSpecificAngularMomentum => nfwRadiusFromSpecificAngularMomentum
-     procedure :: rotationNormalization             => nfwRotationNormalization
-     procedure :: energy                            => nfwEnergy
-     procedure :: energyGrowthRate                  => nfwEnergyGrowthRate
-     procedure :: kSpace                            => nfwKSpace
-     procedure :: freefallRadius                    => nfwFreefallRadius
-     procedure :: freefallRadiusIncreaseRate        => nfwFreefallRadiusIncreaseRate
-     procedure :: profileEnergy                     => nfwProfileEnergy
-     procedure :: specificAngularMomentumScaleFree  => nfwSpecificAngularMomentumScaleFree
-     procedure :: angularMomentumScaleFree          => nfwAngularMomentumScaleFree
-     procedure :: enclosedMassScaleFree             => nfwEnclosedMassScaleFree
-     procedure :: densityEnclosedByRadiusScaleFree  => nfwDensityEnclosedByRadiusScaleFree
-     procedure :: densityScaleFree                  => nfwDensityScaleFree
-     procedure :: radialVelocityDispersionScaleFree => nfwRadialVelocityDispersionScaleFree
-     procedure :: tabulate                          => nfwTabulate
-     procedure :: inverseAngularMomentum            => nfwInverseAngularMomentum
-     procedure :: freefallTabulate                  => nfwFreefallTabulate
-     procedure :: freefallTimeScaleFree             => nfwFreefallTimeScaleFree
-     procedure :: enclosedDensityTabulate           => nfwEnclosedDensityTabulate
+     final     ::                                                     nfwDestructor
+     procedure :: autoHook                                         => nfwAutoHook
+     procedure :: calculationReset                                 => nfwCalculationReset
+     procedure :: density                                          => nfwDensity
+     procedure :: densityLogSlope                                  => nfwDensityLogSlope
+     procedure :: radialMoment                                     => nfwRadialMoment
+     procedure :: enclosedMass                                     => nfwEnclosedMass
+     procedure :: radiusEnclosingDensity                           => nfwRadiusEnclosingDensity
+     procedure :: radiusEnclosingMass                              => nfwRadiusEnclosingMass
+     procedure :: potential                                        => nfwPotential
+     procedure :: circularVelocity                                 => nfwCircularVelocity
+     procedure :: radiusCircularVelocityMaximum                    => nfwRadiusCircularVelocityMaximum
+     procedure :: circularVelocityMaximum                          => nfwCircularVelocityMaximum
+     procedure :: radialVelocityDispersion                         => nfwRadialVelocityDispersion
+     procedure :: radiusFromSpecificAngularMomentum                => nfwRadiusFromSpecificAngularMomentum
+     procedure :: rotationNormalization                            => nfwRotationNormalization
+     procedure :: energy                                           => nfwEnergy
+     procedure :: energyGrowthRate                                 => nfwEnergyGrowthRate
+     procedure :: kSpace                                           => nfwKSpace
+     procedure :: freefallRadius                                   => nfwFreefallRadius
+     procedure :: freefallRadiusIncreaseRate                       => nfwFreefallRadiusIncreaseRate
+     procedure :: profileEnergy                                    => nfwProfileEnergy
+     procedure :: specificAngularMomentumScaleFree                 => nfwSpecificAngularMomentumScaleFree
+     procedure :: angularMomentumScaleFree                         => nfwAngularMomentumScaleFree
+     procedure :: enclosedMassScaleFree                            => nfwEnclosedMassScaleFree
+     procedure :: densityEnclosedByRadiusScaleFree                 => nfwDensityEnclosedByRadiusScaleFree
+     procedure :: densityScaleFree                                 => nfwDensityScaleFree
+     procedure :: radialVelocityDispersionScaleFree                => nfwRadialVelocityDispersionScaleFree
+     procedure :: radialVelocityDispersionScaleFreeSeriesExpansion => nfwRadialVelocityDispersionScaleFreeSeriesExpansion
+     procedure :: tabulate                                         => nfwTabulate
+     procedure :: inverseAngularMomentum                           => nfwInverseAngularMomentum
+     procedure :: freefallTabulate                                 => nfwFreefallTabulate
+     procedure :: freefallTimeScaleFree                            => nfwFreefallTimeScaleFree
+     procedure :: enclosedDensityTabulate                          => nfwEnclosedDensityTabulate
   end type darkMatterProfileDMONFW
 
   interface darkMatterProfileDMONFW
@@ -140,25 +145,33 @@ contains
     !% Constructor for the {\normalfont \ttfamily nfw} dark matter halo profile class which takes a parameter set as input.
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (darkMatterProfileDMONFW )                :: self
-    type (inputParameters         ), intent(inout) :: parameters
-    class(darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
+    type   (darkMatterProfileDMONFW )                :: self
+    type   (inputParameters         ), intent(inout) :: parameters
+    class  (darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
+    logical                                          :: velocityDispersionUseSeriesExpansion
 
+    !# <inputParameter>
+    !#   <name>velocityDispersionUseSeriesExpansion</name>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <source>parameters</source>
+    !#   <description>If {\normalfont \ttfamily true}, radial velocity dispersion is computed using series expansion.</description>
+    !# </inputParameter>
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
-    self=darkMatterProfileDMONFW(darkMatterHaloScale_)
+    self=darkMatterProfileDMONFW(velocityDispersionUseSeriesExpansion,darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function nfwConstructorParameters
 
-  function nfwConstructorInternal(darkMatterHaloScale_) result(self)
+  function nfwConstructorInternal(velocityDispersionUseSeriesExpansion,darkMatterHaloScale_) result(self)
     !% Generic constructor for the {\normalfont \ttfamily nfw} dark matter halo profile class.
     use :: Galacticus_Error, only : Galacticus_Component_List        , Galacticus_Error_Report
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     implicit none
-    type (darkMatterProfileDMONFW )                        :: self
-    class(darkMatterHaloScaleClass), intent(in   ), target :: darkMatterHaloScale_
-    !# <constructorAssign variables="*darkMatterHaloScale_"/>
+    type   (darkMatterProfileDMONFW )                        :: self
+    class  (darkMatterHaloScaleClass), intent(in   ), target :: darkMatterHaloScale_
+    logical                          , intent(in   )         :: velocityDispersionUseSeriesExpansion
+    !# <constructorAssign variables="velocityDispersionUseSeriesExpansion,*darkMatterHaloScale_"/>
 
     self%concentrationPrevious             =-1.0d+0
     self%concentrationMinimum              = 1.0d+0
@@ -243,6 +256,7 @@ contains
     self%enclosedMassPrevious                   =-1.0d0
     self%massScalePrevious                      =-1.0d0
     self%circularVelocityRadiusPrevious         =-1.0d0
+    self%radialVelocityDispersionRadiusPrevious =-1.0d0
     self%lastUniqueID                           =node%uniqueID()
     return
   end subroutine nfwCalculationReset
@@ -542,9 +556,28 @@ contains
     return
   end function nfwCircularVelocity
 
+  double precision function nfwRadiusCircularVelocityMaximum(self,node)
+    !% Returns the radius (in Mpc) at which the maximum circular velocity is achieved in the dark matter profile of {\normalfont \ttfamily node}.
+    use :: Galacticus_Nodes                , only : nodeComponentDarkMatterProfile , treeNode
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    implicit none
+    class           (darkMatterProfileDMONFW       ), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
+    class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
+    ! The radius (in scale-free units) at the peak of the NFW rotation curve. Numerical value found using Mathematica.
+    double precision                                , parameter     :: radiusCircularVelocityMaximumScaleFree=2.162581587064612d0
+    double precision                                                :: scaleRadius
+
+    darkMatterProfile                =>  node             %darkMatterProfile(autoCreate=.true.)
+    scaleRadius                      =   darkMatterProfile%scale            (                 )
+    nfwRadiusCircularVelocityMaximum =  +radiusCircularVelocityMaximumScaleFree &
+         &                              *scaleRadius
+    return
+  end function nfwRadiusCircularVelocityMaximum
+
   double precision function nfwCircularVelocityMaximum(self,node)
     !% Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.
-    use :: Galacticus_Nodes            , only : nodeComponentBasic             , nodeComponentDarkMatterProfile, treeNode
+    use :: Galacticus_Nodes                , only : nodeComponentBasic             , nodeComponentDarkMatterProfile, treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (darkMatterProfileDMONFW       ), intent(inout) :: self
@@ -590,12 +623,27 @@ contains
     double precision                                                         :: radiusOverScaleRadius      , scaleRadius, &
          &                                                                      virialRadiusOverScaleRadius
 
-    darkMatterProfile           => node%darkMatterProfile(autoCreate=.true.)
-    scaleRadius                 =  darkMatterProfile%scale()
-    radiusOverScaleRadius       =  radius                                      /scaleRadius
-    virialRadiusOverScaleRadius =  self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
-    nfwRadialVelocityDispersion =  +self%radialVelocityDispersionScaleFree(radiusOverScaleRadius,virialRadiusOverScaleRadius) &
-         &                         *self%darkMatterHaloScale_%virialVelocity(node)
+    if (radius > 0.0d0) then
+       ! Check if node differs from previous one for which we performed calculations.
+       if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+       ! Compute the radial velocity dispersion if the radius has changed.
+       if (radius /= self%radialVelocityDispersionRadiusPrevious) then
+          darkMatterProfile           => node%darkMatterProfile(autoCreate=.true.)
+          scaleRadius                 =  darkMatterProfile%scale()
+          radiusOverScaleRadius       =  radius                                      /scaleRadius
+          virialRadiusOverScaleRadius =  self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
+          if (self%velocityDispersionUseSeriesExpansion) then
+             self%radialVelocityDispersionPrevious=+self%radialVelocityDispersionScaleFreeSeriesExpansion(radiusOverScaleRadius,virialRadiusOverScaleRadius) &
+                  &                                *self%darkMatterHaloScale_%virialVelocity(node)
+          else
+             self%radialVelocityDispersionPrevious=+self%radialVelocityDispersionScaleFree               (radiusOverScaleRadius,virialRadiusOverScaleRadius) &
+                  &                                *self%darkMatterHaloScale_%virialVelocity(node)
+          end if
+       end if
+       nfwRadialVelocityDispersion=self%radialVelocityDispersionPrevious
+    else
+       nfwRadialVelocityDispersion=0.0d0
+    end if
     return
   end function nfwRadialVelocityDispersion
 
@@ -1030,42 +1078,55 @@ contains
     implicit none
     class           (darkMatterProfileDMONFW), intent(inout)            :: self
     double precision                         , intent(in   )            :: concentration, radius
-    double precision                                        , parameter :: minimumRadiusForExactSolution   =1.0d-6
-    double precision                                        , parameter :: maximumRadiusForExactSolution   =5.0d2
+    double precision                                        , parameter :: minimumRadiusForExactSolution   =1.0d-2
+    double precision                                        , parameter :: maximumRadiusForExactSolution   =1.0d2
     ! Precomputed NFW normalization factor for unit radius.
     double precision                                        , parameter :: nfwNormalizationFactorUnitRadius=-8.5d0+Pi**2-6.0d0*log(2.0d0)+6.0d0*log(2.0d0)**2
     double precision                                                    :: radialVelocityDispersionSquare
+    double precision                                                    :: logRadius, onePlusRadius, logOnePlusRadius
 
     if (radius == 1.0d0) then
        radialVelocityDispersionSquare=nfwNormalizationFactorUnitRadius
     else if (radius >= maximumRadiusForExactSolution) then
-       radialVelocityDispersionSquare=+(2.0d0+radius)                                      &
-            &                         *(                                                   &
-            &                           +         188.0d0-75.0d0*radius                    &
-            &                           +20.0d0*(-  8.0d0+ 5.0d0*radius)*log(1.0d0+radius) &
-            &                          )                                                   &
-            &                         /(400.0d0*radius**3)
+       logRadius                      = log(radius)
+       radialVelocityDispersionSquare=+(-   3.0d0+   4.0d0*logRadius)/(    16.0d0*radius   ) &
+            &                         +(   69.0d0+  20.0d0*logRadius)/(   200.0d0*radius**2) &
+            &                         +(-  97.0d0-  60.0d0*logRadius)/(  1200.0d0*radius**3) &
+            &                         +(   71.0d0+ 105.0d0*logRadius)/(  3675.0d0*radius**4) &
+            &                         +(-   1.0d0-  56.0d0*logradius)/(  3136.0d0*radius**5) &
+            &                         +(-1271.0d0+2520.0d0*logRadius)/(211680.0d0*radius**6)
     else if (radius >= minimumRadiusForExactSolution) then
-       radialVelocityDispersionSquare=+0.5d0*radius*(1.0d0+radius)**2 &
-            &                         *(                              &
-            &                           +Pi**2                        &
-            &                           -log(radius)                  &
-            &                           -1.0d0/       radius          &
-            &                           -1.0d0/(1.0d0+radius)**2      &
-            &                           -6.0d0/(1.0d0+radius)         &
-            &                           +(                            &
-            &                             +1.0d0+ 1.0d0/radius**2     &
-            &                                   - 4.0d0/radius        &
-            &                             -2.0d0/(1.0d0+radius)       &
-            &                            )                            &
-            &                           *log(1.0d0+radius)            &
-            &                           +3.0d0*log(1.0d0+radius)**2   &
-            &                           +6.0d0*Dilogarithm(-radius)   &
+       onePlusRadius                 =      1.0d0+radius
+       logRadius                     = log(       radius)
+       logOnePlusRadius              = log(onePlusRadius)
+       radialVelocityDispersionSquare=+0.5d0                      &
+            &                         *       radius              &
+            &                         *onePlusRadius**2           &
+            &                         *(                          &
+            &                           +Pi**2                    &
+            &                           -logRadius                &
+            &                           -1.0d0/       radius      &
+            &                           -1.0d0/onePlusRadius**2   &
+            &                           -6.0d0/onePlusRadius      &
+            &                           +(                        &
+            &                             +1.0d0+ 1.0d0/radius**2 &
+            &                                   - 4.0d0/radius    &
+            &                             -2.0d0/onePlusRadius    &
+            &                            )                        &
+            &                           *logOnePlusRadius         &
+            &                           +3.0d0                    &
+            &                           *logOnePlusRadius**2      &
+            &                           +6.0d0                    &
+            &                           *Dilogarithm(-radius)     &
             &                          )
     else if (radius > 0.0d0) then
-       radialVelocityDispersionSquare=+0.25d0      *(-23.0d0       + 2.0d0*Pi**2- 2.0d0*log(radius))*radius    &
-            &                         +             (-59.0d0/6.0d0 +       Pi**2-       log(radius))*radius**2 &
-            &                         +1.0d0/24.0d0*(-101.0d0      +12.0d0*Pi**2-12.0d0*log(radius))*radius**3
+       logRadius                     = log(radius)
+       radialVelocityDispersionSquare=+ 1.0d0/   4.0d0*(-23.0d0       + 2.0d0*Pi**2- 2.0d0*logRadius)*radius    &
+            &                         +                (-59.0d0/6.0d0 +       Pi**2-       logRadius)*radius**2 &
+            &                         + 1.0d0/  24.0d0*(-101.0d0      +12.0d0*Pi**2-12.0d0*logRadius)*radius**3 &
+            &                         +11.0d0/  60.0d0                                               *radius**4 &
+            &                         -13.0d0/ 240.0d0                                               *radius**5 &
+            &                         +37.0d0/1400.0d0                                               *radius**6
     else
        radialVelocityDispersionSquare=0.0d0
     end if
@@ -1080,6 +1141,105 @@ contains
          &                                    )
     return
   end function nfwRadialVelocityDispersionScaleFree
+
+  double precision function nfwRadialVelocityDispersionScaleFreeSeriesExpansion(self,radius,concentration)
+    !% Returns the radial velocity dispersion (in units of the virial velocity) in an NFW dark matter profile with given
+    !% {\normalfont \ttfamily concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius)
+    !% using the result derived by \citeauthor{lokas_properties_2001}~(\citeyear{lokas_properties_2001}; eqn.~14). The
+    !% analytic solution is expanded around 0, 1/2, 1, 2, and infinity. The relative error of the approximate series is less
+    !% than $10^{-5}$.
+    use :: Numerical_Constants_Math, only : Pi
+    implicit none
+    class           (darkMatterProfileDMONFW)                                    , intent(inout) :: self
+    double precision                                                             , intent(in   ) :: concentration                   , radius
+    double precision                                                                             :: radialVelocityDispersionSquare
+    integer                                                                      , parameter     :: maximumExpansionOrder         =7
+    double precision                         , dimension(maximumExpansionOrder+1)                :: coefficient                     , radiusPower
+    double precision                                                                             :: logRadius
+    integer                                                                                      :: i
+
+    if (radius == 0.0d0) then
+       radialVelocityDispersionSquare=0.0d0
+    else
+       if      (radius < 0.33d0) then
+          ! Expand around 0.
+          radiusPower(1)= 1.0d0
+          radiusPower(2)= radius
+          logRadius     = log(radius)
+          coefficient(1)=  0.0d0
+          coefficient(2)=  1.0d0/   4.0d0*(-23.0d0       + 2.0d0*Pi**2- 2.0d0*logRadius)
+          coefficient(3)=                 (-59.0d0/6.0d0 +       Pi**2-       logRadius)
+          coefficient(4)=  1.0d0/  24.0d0*(-101.0d0      +12.0d0*Pi**2-12.0d0*logRadius)
+          coefficient(5)= 11.0d0/  60.0d0
+          coefficient(6)=-13.0d0/ 240.0d0
+          coefficient(7)= 37.0d0/1400.0d0
+          coefficient(8)=-17.0d0/1050.0d0
+       else if (radius <  0.68d0) then
+          ! Expand around 1/2.
+          radiusPower(1)= 1.0d0
+          radiusPower(2)= radius-0.5d0
+          coefficient(1)= 9.2256912491493508d-2
+          coefficient(2)= 1.8995942538987498d-2
+          coefficient(3)=-6.1247239215578800d-2
+          coefficient(4)= 9.7544538830827322d-2
+          coefficient(5)=-1.4457663797045428d-1
+          coefficient(6)= 2.1545129876370470d-1
+          coefficient(7)=-3.2824371986452579d-1
+          coefficient(8)= 5.1242111712986012d-1
+       else if (radius < 1.35d0) then
+          ! Expand around 1.
+          radiusPower(1)= 1.0d0
+          radiusPower(2)= radius-1.0d0
+          coefficient(1)= 9.3439401238895310d-2
+          coefficient(2)=-6.2683780821546887d-3
+          coefficient(3)=-8.2007484513808621d-3
+          coefficient(4)= 1.0119593363084506d-2
+          coefficient(5)=-9.2481085050239271d-3
+          coefficient(6)= 7.8754354146912774d-3
+          coefficient(7)=-6.5855139302751235d-3
+          coefficient(8)= 5.5035102596088475d-3
+       else if (radius < 2.66d0) then
+          ! Expand around 2.
+          radiusPower(1)= 1.0d0
+          radiusPower(2)= radius-2.0d0
+          coefficient(1)= 8.4126434467263518d-2
+          coefficient(2)=-9.8388986218866523d-3
+          coefficient(3)= 6.1288152708705594d-4
+          coefficient(4)= 4.3464937545102683d-4
+          coefficient(5)=-3.4479664620159904d-4
+          coefficient(6)= 1.8815165134120623d-4
+          coefficient(7)=-9.2066324234421410d-5
+          coefficient(8)= 4.3068151103206337d-5
+       else
+          ! Expand around infinity.
+          radiusPower(1)= 1.0d0
+          radiusPower(2)= 1.0d0/radius
+          logRadius     = log(radius)
+          coefficient(1)=     0.0d0
+          coefficient(2)=(-   3.0d0+   4.0d0*logRadius)/    16.0d0
+          coefficient(3)=(   69.0d0+  20.0d0*logRadius)/   200.0d0
+          coefficient(4)=(-  97.0d0-  60.0d0*logRadius)/  1200.0d0
+          coefficient(5)=(   71.0d0+ 105.0d0*logRadius)/  3675.0d0
+          coefficient(6)=(-   1.0d0-  56.0d0*logRadius)/  3136.0d0
+          coefficient(7)=(-1271.0d0+2520.0d0*logRadius)/211680.0d0
+          coefficient(8)=(  341.0d0- 360.0d0*logRadius)/ 43200.0d0
+       end if
+       do i=3, maximumExpansionOrder+1
+          radiusPower(i)=radiusPower(i-1)*radiusPower(2)
+       end do
+       radialVelocityDispersionSquare=sum(coefficient*radiusPower)
+    end if
+    nfwRadialVelocityDispersionScaleFreeSeriesExpansion=sqrt(radialVelocityDispersionSquare)
+    ! Compute the normalization factor.
+    call nfwMassNormalizationFactor(self,concentration)
+    ! Evaluate the scale-free radial velocity dispersion.
+    nfwRadialVelocityDispersionScaleFreeSeriesExpansion=+nfwRadialVelocityDispersionScaleFreeSeriesExpansion &
+         &                                              *sqrt(                                               &
+         &                                                    +self%nfwNormalizationFactorPrevious           &
+         &                                                    *concentration                                 &
+         &                                                   )
+    return
+  end function nfwRadialVelocityDispersionScaleFreeSeriesExpansion
 
   double precision function nfwProfileEnergy(self,concentration)
     !% Computes the total energy of an NFW profile halo of given {\normalfont \ttfamily concentration} using the methods of
