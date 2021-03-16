@@ -3,13 +3,14 @@
 package Galacticus::Build::SourceTree;
 use strict;
 use warnings;
+use utf8;
 use Cwd;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Data::Dumper;
 use Scalar::Util qw(reftype);
 use Fortran::Utils;
 use File::Slurp;
-use Sort::Topological qw(toposort);
+use Sort::Topo;
 use Galacticus::Build::SourceTree::Hooks;
 use Galacticus::Build::SourceTree::Parse::Directives;
 use Galacticus::Build::SourceTree::Parse::Visibilities;
@@ -23,6 +24,8 @@ use Galacticus::Build::SourceTree::Process::FunctionClass;
 use Galacticus::Build::SourceTree::Process::StateStorable;
 use Galacticus::Build::SourceTree::Process::DeepCopyActions;
 use Galacticus::Build::SourceTree::Process::OptionalArgument;
+use Galacticus::Build::SourceTree::Process::ForEach;
+use Galacticus::Build::SourceTree::Process::Allocate;
 use Galacticus::Build::SourceTree::Process::Generics;
 use Galacticus::Build::SourceTree::Process::SourceDigest;
 use Galacticus::Build::SourceTree::Process::SourceIntrospection;
@@ -39,6 +42,7 @@ use Galacticus::Build::SourceTree::Process::ConditionalCall;
 use Galacticus::Build::SourceTree::Process::EventHooks;
 use Galacticus::Build::SourceTree::Process::ClassDocumentation;
 use Galacticus::Build::SourceTree::Analyze::UseDuplication;
+use Encode;
 
 sub ParseFile {    
     # Grab the file name.
@@ -143,7 +147,7 @@ sub ProcessTree {
 	    push(@{$dependencies{$dependent}},$processor);
 	}
     }
-    my @processorsOrdered = toposort(sub { @{$dependencies{$_[0]} || []}; }, \@processors );
+    my @processorsOrdered = &Sort::Topo::sort(\@processors,\%dependencies);
     # Run all defined processors on the tree.
     &{$Galacticus::Build::SourceTree::Hooks::processHooks{$_}}($tree,\%options)
 	foreach ( @processorsOrdered );
@@ -196,7 +200,22 @@ sub Build_Children {
     delete($unitOpeners{'moduleProcedure'})
 	unless ( $type eq "contains" );
     # Connect a file handle to the code text.
-    open(my $code,"<",\$codeText);
+    ## NOTE: There seems to be a change in how Unicode charcaters are handled here between different Perl versions. The following
+    ## is a hack which switches between the methods that work depending on Perl version. Note that the transition version is a
+    ## guess. Known working versions are as follows:
+    ##
+    ### Version  Method
+    ### 5.10.1   Old
+    ### 5.26.3   New
+    my $code;
+    if ( $^V > v5.18 ) {
+	# New method.
+ 	open($code,"<",\$codeText);
+    } else {
+	# Old method.
+	my $codeTextDecoded = decode(q{utf8},$codeText);
+	open($code,"<",\$codeTextDecoded);
+    }
     # Read lines.
     do {
 	# Get a line.
